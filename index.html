@@ -88,15 +88,19 @@ h1 .t1{color:var(--steel);}h1 .t2{color:var(--copper);}
 .card .cd{font-size:12px;color:var(--dim);margin-top:3px;line-height:1.4;}
 .card .ic{margin-right:8px;}
 /* ---------- chassis ---------- */
-.chgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 16px;}
-.chcard{text-align:left;background:#0E1526;border:2px solid #2A3A66;border-radius:10px;
-  padding:10px 12px;cursor:pointer;font-family:'Bricolage Grotesque',sans-serif;color:var(--ink);}
+.chgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 0 12px;}
+.chcard{display:flex;align-items:center;gap:9px;text-align:left;background:#0E1526;border:2px solid #2A3A66;border-radius:10px;
+  padding:8px 10px;cursor:pointer;font-family:'Bricolage Grotesque',sans-serif;color:var(--ink);}
 .chcard:hover{border-color:#3A5580;}
 .chcard.sel{border-color:var(--copper);background:#1A1408;box-shadow:0 0 8px rgba(224,138,60,0.3);}
-.chcard .chn{font-weight:800;font-size:13px;display:flex;align-items:center;gap:7px;}
-.chcard .chdot{width:12px;height:12px;border-radius:3px;flex:0 0 12px;}
+.chcard canvas{width:34px;height:34px;flex:0 0 34px;}
+.chcard .chtxt{min-width:0;}
+.chcard .chn{font-weight:800;font-size:12px;line-height:1.15;}
 .chcard .chr{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--copper);}
-.chcard .chd{font-size:11px;color:var(--dim);margin-top:4px;line-height:1.35;}
+.chcard .chdot{width:12px;height:12px;border-radius:3px;flex:0 0 12px;}
+/* cartes mode : compactes sans vignette */
+.chcard.mode{display:block;}
+.chcard.mode .chn{font-size:12px;}
 /* ---------- classement ---------- */
 .lb{margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;}
 .lb .lrow{display:flex;gap:8px;padding:5px 8px;border-bottom:1px solid #1B2440;align-items:baseline;}
@@ -182,16 +186,16 @@ h1 .t1{color:var(--steel);}h1 .t2{color:var(--copper);}
 <!-- ============ MENU ============ -->
 <div class="overlay on" id="ovMenu"><div class="panel">
   <h1><span class="t1">TECHNO</span> <span class="t2">SURVIVOR</span></h1>
-  <p class="sub">Le r&eacute;seau de l&rsquo;atelier est corrompu. Bugs, virus et machines rouill&eacute;es d&eacute;ferlent, et la menace cro&icirc;t <b style="color:var(--copper)">exponentiellement</b>. Survivez le plus longtemps possible &mdash; des heures, si votre build tient.</p>
-  <span class="hardtag">SURVIVAL EXPONENTIEL &middot; 12 ARMES &middot; 19 COMBOS &middot; 2 BOSS</span>
-  <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;">
+  <p class="sub">Survivez le plus longtemps possible &mdash; la menace cro&icirc;t <b style="color:var(--copper)">exponentiellement</b>.</p>
+  <span class="hardtag">12 ARMES &middot; 19 COMBOS &middot; 2 BOSS</span>
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
     <span class="cred" id="credChip">&#9881; 0 cr&eacute;dits</span>
     <button class="btn2" id="btnAtelier">ATELIER</button>
     <button class="btn2" id="btnTuto" style="border-color:var(--steel);color:var(--steel);">TUTO</button>
   </div>
-  <p class="rules" style="margin-bottom:6px;"><b>Choisissez votre mode :</b></p>
+  <p class="rules" style="margin-bottom:5px;"><b>Mode</b></p>
   <div class="chgrid" id="modeGrid"></div>
-  <p class="rules" style="margin-bottom:6px;"><b>Choisissez votre ch&acirc;ssis :</b></p>
+  <p class="rules" style="margin-bottom:5px;"><b>Ch&acirc;ssis</b></p>
   <div class="chgrid" id="chGrid"></div>
   <button class="btn" id="btnResumeRun" style="display:none;margin-bottom:10px;background:linear-gradient(90deg,#2E6A8E,#4FB3D9);">REPRENDRE LA PARTIE</button>
   <button class="btn" id="btnStart">D&Eacute;MARRER LA SIMULATION</button>
@@ -592,9 +596,8 @@ function buildModeGrid(){
   var g=document.getElementById('modeGrid');g.innerHTML='';
   MODES.forEach(function(mo,i){
     var b=document.createElement('button');
-    b.className='chcard'+(i===selMode?' sel':'');
-    b.innerHTML='<div class="chn">'+mo.nom+' <span class="chr">'+mo.role+'<\/span><\/div>'+
-      '<div class="chd">'+mo.desc+'<\/div>';
+    b.className='chcard mode'+(i===selMode?' sel':'');
+    b.innerHTML='<div class="chn">'+mo.nom+'<\/div><div class="chr">'+mo.role+'<\/div>';
     b.addEventListener('click',function(){
       selMode=i;
       try{localStorage.setItem('technoSurvivorMode',String(i));}catch(errS2){}
@@ -625,14 +628,47 @@ try{
   if(savedCh!==null){var idx=parseInt(savedCh,10);
     if(idx>=0&&idx<CHASSIS.length)selChassis=idx;}
 }catch(errC){}
+function drawChassisIcon(cv,ch){
+  var c=cv.getContext('2d'),S=34;
+  cv.width=S;cv.height=S;
+  c.clearRect(0,0,S,S);
+  c.save();c.translate(S/2,S/2+2);c.scale(1.05,1.05);
+  /* train de roulement */
+  if(ch.id==='dart'){
+    c.fillStyle='rgba(120,220,255,0.5)';
+    c.beginPath();c.ellipse(-7,10,6,3,0,0,Math.PI*2);c.fill();
+    c.beginPath();c.ellipse(7,10,6,3,0,0,Math.PI*2);c.fill();
+  }else if(ch.id==='bastion'){
+    c.fillStyle='#3A4A6E';c.fillRect(-16,-8,7,17);c.fillRect(9,-8,7,17);
+  }else{
+    c.fillStyle='#2A3A66';c.fillRect(-13,-7,5,15);c.fillRect(8,-7,5,15);
+  }
+  /* corps degrade */
+  var bg=c.createRadialGradient(-4,-5,2,0,0,13);
+  bg.addColorStop(0,shade(ch.body,1.4));bg.addColorStop(0.6,ch.body);bg.addColorStop(1,shade(ch.body,0.5));
+  c.fillStyle=bg;c.beginPath();c.arc(0,0,11,0,Math.PI*2);c.fill();
+  c.strokeStyle=shade(ch.body,0.4);c.lineWidth=1.5;c.stroke();c.lineWidth=1;
+  /* bande d'accent */
+  c.fillStyle=ch.acc;c.beginPath();c.moveTo(-9,-3);c.lineTo(9,-3);c.lineTo(8,3);c.lineTo(-8,3);c.closePath();c.fill();
+  /* cockpit */
+  c.fillStyle='#060A16';c.beginPath();c.ellipse(0,-6,6,4,0,0,Math.PI*2);c.fill();
+  var vg=c.createLinearGradient(0,-10,0,-2);
+  vg.addColorStop(0,'#8FE6FF');vg.addColorStop(1,'#0B2030');
+  c.fillStyle=vg;c.beginPath();c.ellipse(0,-6,4.5,2.8,0,0,Math.PI*2);c.fill();
+  c.fillStyle='rgba(255,255,255,0.7)';c.beginPath();c.ellipse(-1.5,-7,1.5,0.8,-0.5,0,Math.PI*2);c.fill();
+  c.restore();
+}
 function buildChassisGrid(){
   var g=document.getElementById('chGrid');g.innerHTML='';
   CHASSIS.forEach(function(ch,i){
     var b=document.createElement('button');
     b.className='chcard'+(i===selChassis?' sel':'');
-    b.innerHTML='<div class="chn"><span class="chdot" style="background:'+ch.body+';border:2px solid '+ch.acc+'"><\/span>'+
-      ch.nom+' <span class="chr">'+ch.role+'<\/span><\/div>'+
-      '<div class="chd">'+WEAPONS[ch.weapon].ic+' '+ch.desc+'<\/div>';
+    var cv=document.createElement('canvas');
+    var txt=document.createElement('div');txt.className='chtxt';
+    txt.innerHTML='<div class="chn">'+ch.nom+'<\/div>'+
+      '<div class="chr">'+ch.role+' \u00B7 '+WEAPONS[ch.weapon].ic+'<\/div>';
+    b.appendChild(cv);b.appendChild(txt);
+    drawChassisIcon(cv,ch);
     b.addEventListener('click',function(){
       selChassis=i;
       try{localStorage.setItem('technoSurvivorChassis',String(i));}catch(errS){}
