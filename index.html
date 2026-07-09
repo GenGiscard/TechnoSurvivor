@@ -143,6 +143,10 @@ h1 .t1{color:var(--steel);}h1 .t2{color:var(--copper);}
   color:var(--steel);font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:13px;cursor:pointer;margin-top:8px;}
 .quizbtn:hover{background:#0E1C2E;}
 .qbox{background:#0E1526;border:1px solid #2A3A66;border-radius:10px;padding:13px;margin-top:8px;}
+.exobox{background:#0E1526;border:1px solid var(--copper);border-radius:10px;padding:14px;
+  font-size:14px;line-height:1.5;color:var(--ink);}
+#marchInput{flex:1;background:#0B1020;border:1px solid #2A3A66;border-radius:8px;color:var(--ink);
+  padding:9px 11px;font-family:'JetBrains Mono',monospace;font-size:14px;}
 .qbox .qq{font-size:14px;font-weight:600;margin-bottom:10px;}
 .qopt{display:block;width:100%;text-align:left;padding:9px 11px;margin-bottom:6px;border:1px solid #2A3A66;
   border-radius:7px;background:#121A30;color:var(--ink);font-family:'Bricolage Grotesque',sans-serif;
@@ -193,8 +197,6 @@ h1 .t1{color:var(--steel);}h1 .t2{color:var(--copper);}
     <button class="btn2" id="btnAtelier">ATELIER</button>
     <button class="btn2" id="btnTuto" style="border-color:var(--steel);color:var(--steel);">TUTO</button>
   </div>
-  <p class="rules" style="margin-bottom:5px;"><b>Mode</b></p>
-  <div class="chgrid" id="modeGrid"></div>
   <p class="rules" style="margin-bottom:5px;"><b>Ch&acirc;ssis</b></p>
   <div class="chgrid" id="chGrid"></div>
   <button class="btn" id="btnResumeRun" style="display:none;margin-bottom:10px;background:linear-gradient(90deg,#2E6A8E,#4FB3D9);">REPRENDRE LA PARTIE</button>
@@ -220,7 +222,7 @@ h1 .t1{color:var(--steel);}h1 .t2{color:var(--copper);}
     <br><br>
     <b style="color:#FFD24A">&Eacute;VOLUTIONS :</b> une arme au niveau 5 <b>+</b> son passif associ&eacute; au niveau 5 &rarr; le prochain boss l&acirc;che un <b style="color:#FFD24A">coffre dor&eacute;</b> qui la transforme en version ultime (D&eacute;coupe plasma, Cyclotron, Orage statique, Barrage balistique&hellip;).
     <br><br>
-    Chaque partie rapporte des <b style="color:#FFD24A">cr&eacute;dits</b> pour l&rsquo;<b>ATELIER</b> (bonus permanents entre les parties). Et &agrave; chaque mont&eacute;e de niveau, une <b>&#127891; question du brevet</b> (6 mati&egrave;res m&eacute;lang&eacute;es) est pos&eacute;e apr&egrave;s chaque choix de module : bonne r&eacute;ponse = <b style="color:#7CFF9E">+5% d&rsquo;XP</b>. Avant le choix, une question bonus optionnelle offre une nouvelle s&eacute;rie de cartes. Et &agrave; la mort, une <b style="color:#B96CFF">SECONDE CHANCE</b> : bonne r&eacute;ponse = red&eacute;marrage &agrave; 40% des PV (une fois par partie).
+    Chaque partie rapporte des <b style="color:#FFD24A">cr&eacute;dits</b> pour l&rsquo;<b>ATELIER</b> (bonus permanents entre les parties). Et &agrave; chaque mont&eacute;e de niveau, une <b>&#127891; question du brevet</b> (6 mati&egrave;res m&eacute;lang&eacute;es) est pos&eacute;e apr&egrave;s chaque choix de module : bonne r&eacute;ponse = <b style="color:#7CFF9E">+5% d&rsquo;XP</b>. Avant le choix, une question bonus optionnelle offre une nouvelle s&eacute;rie de cartes. Et &agrave; la mort, une <b style="color:#B96CFF">SECONDE CHANCE</b> : bonne r&eacute;ponse = red&eacute;marrage &agrave; 40% des PV (une fois par partie). Enfin, toutes les <b>2 minutes</b>, un <b style="color:var(--copper)">MARCHAND TECHNIQUE</b> propose un vrai <b>exercice de technologie</b> : le r&eacute;soudre monte une arme d&rsquo;un niveau (un compte &agrave; rebours de 3 s prot&egrave;ge la reprise).
     <br><br>
     <b style="color:#B96CFF">D&Eacute;FI DU JOUR :</b> m&ecirc;me graine pour tout le monde &mdash; m&ecirc;mes ennemis, m&ecirc;mes cartes, ch&acirc;ssis impos&eacute; &mdash; classement quotidien s&eacute;par&eacute;. Une seule r&egrave;gle : pas de sauvegarde, &ccedil;a se joue d&rsquo;une traite. <span style="color:var(--dim);font-size:11px;">(&Agrave; la fin de chaque partie, des statistiques anonymes de jeu &mdash; sans pseudo &mdash; sont envoy&eacute;es pour am&eacute;liorer l&rsquo;&eacute;quilibrage.)</span>
   </p>
@@ -285,6 +287,28 @@ h1 .t1{color:var(--steel);}h1 .t2{color:var(--copper);}
   <p class="sub">Syst&egrave;me critique&hellip; Une question du brevet peut relancer la machine : bonne r&eacute;ponse = red&eacute;marrage &agrave; <b style="color:#7CFF9E">40% des PV</b>.</p>
   <div id="reviveBox"></div>
   <button class="btn" id="reviveBtn" style="display:none;margin-top:12px;">CONTINUER</button>
+</div></div>
+
+<!-- ============ MARCHAND ============ -->
+<div class="overlay" id="ovMarchand"><div class="panel">
+  <canvas id="marchPortrait" width="120" height="120" style="display:block;margin:0 auto 6px;width:120px;height:120px;"></canvas>
+  <h1 style="font-size:23px;"><span class="t1">MARCHAND</span> <span class="t2">TECHNIQUE</span></h1>
+  <p class="sub">R&eacute;sous cet exercice de technologie pour am&eacute;liorer une arme. Bonne r&eacute;ponse = <b style="color:#7CFF9E">+1 niveau</b>. R&eacute;ponse libre.</p>
+  <div id="marchWeapon" style="font-weight:800;font-size:14px;margin-bottom:10px;"></div>
+  <div class="exobox" id="marchExo"></div>
+  <div class="pubrow" style="margin-top:10px;">
+    <input type="text" id="marchInput" placeholder="Ta r&eacute;ponse" autocomplete="off">
+    <button class="btn2" id="marchGo" style="border-color:var(--copper);color:var(--copper);">VALIDER</button>
+  </div>
+  <div id="marchAide" style="font-size:11px;color:var(--dim);margin-top:8px;min-height:14px;"></div>
+  <div id="marchFeed" style="font-family:'JetBrains Mono',monospace;font-size:12px;min-height:16px;margin-top:6px;"></div>
+  <button class="btn2" id="marchSkip" style="margin-top:10px;border-color:#2A3A66;color:#8A94AC;">PASSER (aucune am&eacute;lioration)</button>
+</div></div>
+
+<!-- ============ COMPTE A REBOURS DE REPRISE ============ -->
+<div class="overlay" id="ovCountdown"><div class="panel" style="text-align:center;background:transparent;border:none;box-shadow:none;">
+  <div id="cdNum" style="font-family:'JetBrains Mono',monospace;font-size:96px;font-weight:800;color:var(--copper);text-shadow:0 0 30px rgba(224,138,60,0.6);">3</div>
+  <p class="sub">Reprise imminente&hellip;</p>
 </div></div>
 
 <!-- ============ MODERATION ============ -->
@@ -579,33 +603,8 @@ function seedFromString(s){
 function dailyChassis(){return seedFromString(dailyKey()+'chassis')%CHASSIS.length;}
 
 /* ---------------- Modes de difficulte ---------------- */
-var MODES=[
-  {id:'ing',nom:'MODE ING\u00C9NIEUR',role:'DIFFICILE',k:1,
-    desc:'La menace exponentielle de r\u00E9f\u00E9rence. Classement activ\u00E9.'},
-  {id:'stag',nom:'MODE STAGIAIRE',role:'APPRENTISSAGE',k:0.6,
-    desc:'La menace grimpe 40% moins vite, pour apprendre les builds. Hors classement.'}
-];
+var MODES=[{id:'ing',nom:'MODE ING\u00C9NIEUR',role:'DIFFICILE',k:1}];
 var selMode=0;
-try{
-  var savedMo=localStorage.getItem('technoSurvivorMode');
-  if(savedMo!==null){var mIdx=parseInt(savedMo,10);
-    if(mIdx>=0&&mIdx<MODES.length)selMode=mIdx;}
-}catch(errM){}
-function diffK(){return MODES[selMode].k;}
-function buildModeGrid(){
-  var g=document.getElementById('modeGrid');g.innerHTML='';
-  MODES.forEach(function(mo,i){
-    var b=document.createElement('button');
-    b.className='chcard mode'+(i===selMode?' sel':'');
-    b.innerHTML='<div class="chn">'+mo.nom+'<\/div><div class="chr">'+mo.role+'<\/div>';
-    b.addEventListener('click',function(){
-      selMode=i;
-      try{localStorage.setItem('technoSurvivorMode',String(i));}catch(errS2){}
-      buildModeGrid();
-    });
-    g.appendChild(b);
-  });
-}
 
 /* ---------------- Chassis ---------------- */
 var CHASSIS=[
@@ -685,7 +684,6 @@ var FB_TELE='https://techno-survivor-default-rtdb.europe-west1.firebasedatabase.
 var scorePublished=false;
 function publishScore(){
   if(scorePublished)return;
-  if(MODES[selMode].id==='stag')return;
   var pseudo=(document.getElementById('pseudoIn').value||'').trim().slice(0,14);
   var msg=document.getElementById('pubMsg');
   if(!pseudo){msg.textContent='Entrez un pseudo pour publier.';msg.style.color='#FF5A5A';return;}
@@ -702,7 +700,7 @@ function publishScore(){
     kills:kills,
     boss:bossIdx-(bossAlive?1:0),
     chassis:CHASSIS[selChassis].nom,
-    mode:MODES[selMode].id,
+    mode:'ing',
     defi:isDaily,
     date:new Date().toISOString()
   };
@@ -938,6 +936,75 @@ var QBANK=[
   {q:'Pour la photosynth\u00E8se, un v\u00E9g\u00E9tal a besoin de lumi\u00E8re, d\u2019eau et\u2026',r:['De CO\u2082','De dioxyg\u00E8ne','D\u2019azote pur','De glucose'],ok:0,mat:'SVT'}
 ];
 var freeRerolls=0,quizDone=false,usedQ=[];
+/* ---------------- Exercices du marchand (vrais problemes de techno) ----------------
+   Chaque exercice a un enonce, un rappel de methode, une reponse EXACTE (chaine
+   normalisee) et une tolerance numerique optionnelle. Ce ne sont pas des QCM :
+   l'eleve saisit sa reponse. */
+var EXOS=[
+  {e:'Un pignon de 15 dents entra\u00EEne une roue de 45 dents. Quel est le rapport de r\u00E9duction (roue/pignon) ?',
+   aide:'Rapport = nombre de dents men\u00E9e / nombre de dents menante.',rep:'3',num:3,tol:0.01,unite:''},
+  {e:'Un moteur tourne \u00E0 3000 tr/min. Combien de tours en 1 seconde ?',
+   aide:'Divise par 60 (min \u2192 s).',rep:'50',num:50,tol:0.1,unite:'tr/s'},
+  {e:'Convertis 1101 (binaire) en d\u00E9cimal.',
+   aide:'8\u00D71 + 4\u00D71 + 2\u00D70 + 1\u00D71.',rep:'13',num:13,tol:0,unite:''},
+  {e:'Convertis le nombre d\u00E9cimal 10 en binaire (4 bits).',
+   aide:'10 = 8 + 2.',rep:'1010',num:null,tol:0,unite:''},
+  {e:'Une r\u00E9sistance de 220 \u03A9 sous 5 V. Quelle intensit\u00E9 en mA ? (I = U/R)',
+   aide:'I = 5 / 220 en amp\u00E8res, puis \u00D71000 pour les mA. Arrondis \u00E0 l\u2019entier.',rep:'23',num:23,tol:1,unite:'mA'},
+  {e:'Un objet imprim\u00E9 en 3D fait 4 cm de haut. La buse d\u00E9pose des couches de 0,2 mm. Combien de couches ?',
+   aide:'Convertis 4 cm en mm, puis divise par 0,2.',rep:'200',num:200,tol:0,unite:'couches'},
+  {e:'Une poulie motrice de 20 mm entra\u00EEne une poulie de 60 mm. Si la motrice tourne \u00E0 900 tr/min, quelle vitesse pour la grande ?',
+   aide:'V\u2081\u00D7D\u2081 = V\u2082\u00D7D\u2082, donc V\u2082 = 900\u00D720/60.',rep:'300',num:300,tol:1,unite:'tr/min'},
+  {e:'Convertis 0xFF (hexad\u00E9cimal) en d\u00E9cimal.',
+   aide:'F = 15. 15\u00D716 + 15.',rep:'255',num:255,tol:0,unite:''},
+  {e:'Un capteur envoie une donn\u00E9e sur 1 octet. Combien de valeurs diff\u00E9rentes peut-il coder ?',
+   aide:'2 puissance 8.',rep:'256',num:256,tol:0,unite:'valeurs'},
+  {e:'Une pi\u00E8ce mesure 250 mm. \u00C0 l\u2019\u00E9chelle 1:5 sur le plan, quelle est sa longueur dessin\u00E9e en mm ?',
+   aide:'\u00C9chelle 1:5 = divis\u00E9 par 5.',rep:'50',num:50,tol:0,unite:'mm'},
+  {e:'Un v\u00E9rin exerce 300 N sur une surface de 6 cm\u00B2. Quelle pression en N/cm\u00B2 ? (P = F/S)',
+   aide:'P = 300 / 6.',rep:'50',num:50,tol:0.5,unite:'N/cm\u00B2'},
+  {e:'Un programme r\u00E9p\u00E8te une boucle 8 fois, avec 3 instructions par tour. Combien d\u2019instructions ex\u00E9cut\u00E9es ?',
+   aide:'8 \u00D7 3.',rep:'24',num:24,tol:0,unite:'instructions'},
+  {e:'Un signal a une p\u00E9riode de 20 ms. Quelle est sa fr\u00E9quence en Hz ? (f = 1/T)',
+   aide:'T = 0,02 s, f = 1/0,02.',rep:'50',num:50,tol:1,unite:'Hz'},
+  {e:'Une batterie de 2000 mAh alimente un circuit qui consomme 250 mA. Autonomie en heures ?',
+   aide:'2000 / 250.',rep:'8',num:8,tol:0.1,unite:'h'},
+  {e:'Un engrenage menant de 12 dents tourne 5 fois. Combien de tours fait une roue men\u00E9e de 30 dents ?',
+   aide:'Tours\u2082 = 12\u00D75 / 30.',rep:'2',num:2,tol:0.01,unite:'tours'},
+  {e:'Convertis 2,5 kg en grammes.',
+   aide:'\u00D71000.',rep:'2500',num:2500,tol:0,unite:'g'},
+  {e:'Un LED consomme 20 mA. Combien de LED identiques pour un total de 0,1 A ?',
+   aide:'0,1 A = 100 mA, divise par 20.',rep:'5',num:5,tol:0,unite:'LED'},
+  {e:'Sur un plan \u00E0 l\u2019\u00E9chelle 2:1, une pi\u00E8ce est dessin\u00E9e \u00E0 80 mm. Quelle est sa taille r\u00E9elle en mm ?',
+   aide:'2:1 = agrandi \u00D72, donc r\u00E9el = 80/2.',rep:'40',num:40,tol:0,unite:'mm'},
+  {e:'Un axe tourne \u00E0 120 tr/min. Combien de degr\u00E9s parcourus en 1 seconde ?',
+   aide:'120 tr/min = 2 tr/s = 720\u00B0/s.',rep:'720',num:720,tol:1,unite:'\u00B0/s'},
+  {e:'Une imprimante 3D avance de 60 mm en 30 s. Quelle vitesse en mm/s ?',
+   aide:'60 / 30.',rep:'2',num:2,tol:0.1,unite:'mm/s'}
+];
+var usedExos=[],marchandTimer=0,marchandDone=0;
+function pickExo(){
+  var pool=[];
+  for(var i=0;i<EXOS.length;i++)if(usedExos.indexOf(i)===-1)pool.push(i);
+  if(pool.length===0){usedExos=[];for(var j=0;j<EXOS.length;j++)pool.push(j);}
+  var xi=pool[Math.floor(rand()*pool.length)];
+  usedExos.push(xi);
+  return EXOS[xi];
+}
+function normAnswer(s){
+  return String(s).trim().toLowerCase()
+    .replace(/,/g,'.').replace(/\s+/g,'').replace(/[^0-9a-z.\-]/g,'');
+}
+function checkExo(exo,input){
+  var v=normAnswer(input);
+  if(v==='')return false;
+  if(exo.num!==null&&!isNaN(exo.num)){
+    var f=parseFloat(v);
+    if(isNaN(f))return normAnswer(exo.rep)===v;
+    return Math.abs(f-exo.num)<=(exo.tol||0)+1e-9;
+  }
+  return normAnswer(exo.rep)===v;
+}
 var secondChanceUsed=false,quizOk=0,quizTot=0;
 function quizPoolIdx(){
   var pool=[];
@@ -1034,8 +1101,8 @@ function resumeRun(){
   if(!s){startGame();return;}
   isDaily=false;
   selChassis=sInt(s.selChassis,0,CHASSIS.length-1,0);
-  selMode=sInt(s.selMode,0,MODES.length-1,0);
-  buildModeGrid();buildChassisGrid();
+  selMode=0;
+  buildChassisGrid();
   startGame();
   /* restauration assainie de la progression */
   t=sInt(s.t,0,1e7,0);
@@ -1080,7 +1147,7 @@ function sendTelemetry(){
   var evoCount=0;
   Object.keys(player.weapons).forEach(function(k){if(player.weapons[k]>=6)evoCount++;});
   var doc={temps:Math.floor(t),palier:palier,niveau:player.lvl,kills:kills,
-    boss:bossIdx-(bossAlive?1:0),chassis:CHASSIS[selChassis].id,mode:MODES[selMode].id,
+    boss:bossIdx-(bossAlive?1:0),chassis:CHASSIS[selChassis].id,mode:'ing',
     defi:isDaily,armes:player.weapons,passifs:player.passives,evolutions:evoCount,
     quizOk:quizOk,quizTot:quizTot,
     date:new Date().toISOString()};
@@ -1161,10 +1228,10 @@ var TYPES=[
 ];
 /* Croissance EXPONENTIELLE : x2 environ toutes les 9-10 minutes au debut,
    puis la composante exponentielle domine totalement (x77 a 60 min, x5900 a 2 h).
-   En mode Stagiaire (k=0.6) tout grimpe 40% moins vite. */
-function hpScale(){var tm=t/60*diffK();return (1+tm*0.25)*Math.pow(1.075,tm);}
-function spdScale(){return Math.min(1+(t/60)*diffK()*0.03,1.6);}
-function dmgScale(){return Math.min(1+t*diffK()/420,6);}
+   */
+function hpScale(){var tm=t/60;return (1+tm*0.25)*Math.pow(1.075,tm);}
+function spdScale(){return Math.min(1+(t/60)*0.03,1.6);}
+function dmgScale(){return Math.min(1+t/420,6);}
 function spawnEnemy(type,ax,ay){
   var a=(ax===undefined)?rand()*Math.PI*2:ax;
   var d=Math.max(W,H)*0.62+40;
@@ -1775,8 +1842,8 @@ function grantXpBonus(){
 }
 function closeLevelUp(chain){
   document.getElementById('ovLevel').classList.remove('on');
-  state='play';
-  if(chain)openLevelUp();
+  if(chain){openLevelUp();}          /* le +5% a fait monter d'un niveau : on encha\u00EEne sans pause */
+  else{startCountdown();}             /* fin du menu : 3 s d'invuln\u00E9rabilit\u00E9 avant reprise */
 }
 function openPostQuestion(){
   var Q=pickQuestion();
@@ -1804,6 +1871,137 @@ function openPostQuestion(){
   skip.textContent='PASSER \u2192';
   skip.addEventListener('click',function(){closeLevelUp(false);});
   qb.appendChild(skip);
+}
+/* ---------------- Marchand technique ---------------- */
+var marchExoCur=null,marchWeaponKey=null;
+function upgradableWeapons(){
+  var list=[];
+  for(var k in player.weapons){
+    if(player.weapons[k]>=1&&player.weapons[k]<5)list.push(k); /* pas au-dela du niv 5 : l'evolution reste liee au boss */
+  }
+  return list;
+}
+function drawMarchandPortrait(){
+  var cv=document.getElementById('marchPortrait');if(!cv)return;
+  var c=cv.getContext('2d'),S=120;
+  var t=Date.now()/1000;   /* horloge murale : anime le portrait m\u00EAme jeu en pause */
+  c.clearRect(0,0,S,S);
+  /* halo de fond */
+  var hg=c.createRadialGradient(S/2,S/2,10,S/2,S/2,S*0.6);
+  hg.addColorStop(0,'rgba(224,138,60,0.22)');
+  hg.addColorStop(1,'rgba(224,138,60,0)');
+  c.fillStyle=hg;c.fillRect(0,0,S,S);
+  c.save();c.translate(S/2,S/2+6);
+  /* --- etal : plateau + composants lumineux --- */
+  c.fillStyle='#141C30';c.strokeStyle='#3A4A6E';c.lineWidth=2;
+  c.beginPath();c.moveTo(-46,40);c.lineTo(46,40);c.lineTo(38,52);c.lineTo(-38,52);c.closePath();
+  c.fill();c.stroke();c.lineWidth=1;
+  var comps=['#7CFF9E','#4FB3D9','#FFD24A','#B96CFF'];
+  for(var i=0;i<4;i++){c.fillStyle=comps[i];
+    c.globalAlpha=0.6+0.4*Math.sin(t*3+i);
+    c.fillRect(-38+i*22,34,7,7);}
+  c.globalAlpha=1;
+  /* --- capuche / manteau --- */
+  var coat=c.createLinearGradient(0,-30,0,45);
+  coat.addColorStop(0,'#2E6A8E');coat.addColorStop(1,'#12324A');
+  c.fillStyle=coat;c.strokeStyle='#0B2030';c.lineWidth=2;
+  c.beginPath();
+  c.moveTo(0,-42);c.quadraticCurveTo(-30,-40,-34,-6);
+  c.lineTo(-40,42);c.lineTo(40,42);c.lineTo(34,-6);
+  c.quadraticCurveTo(30,-40,0,-42);c.closePath();c.fill();c.stroke();
+  /* liseret cuivre du manteau */
+  c.strokeStyle='#E08A3C';c.lineWidth=2;
+  c.beginPath();c.moveTo(0,-40);c.lineTo(0,42);c.stroke();c.lineWidth=1;
+  /* --- capuchon sombre --- */
+  c.fillStyle='#0B1524';
+  c.beginPath();c.moveTo(0,-46);c.quadraticCurveTo(-26,-44,-22,-14);
+  c.quadraticCurveTo(0,-6,22,-14);c.quadraticCurveTo(26,-44,0,-46);c.closePath();c.fill();
+  /* ombre interieure du capuchon */
+  c.fillStyle='#05080F';
+  c.beginPath();c.ellipse(0,-24,16,17,0,0,Math.PI*2);c.fill();
+  /* --- oeil-optique cuivre qui pulse --- */
+  var ep=0.7+0.3*Math.sin(t*4);
+  var eg=c.createRadialGradient(0,-24,0,0,-24,9);
+  eg.addColorStop(0,'#FFE0B0');eg.addColorStop(0.5,'#E08A3C');eg.addColorStop(1,'rgba(224,138,60,0)');
+  c.globalAlpha=ep;c.fillStyle=eg;
+  c.beginPath();c.arc(0,-24,9,0,Math.PI*2);c.fill();c.globalAlpha=1;
+  c.fillStyle='#FFF3E0';c.beginPath();c.arc(0,-24,3,0,Math.PI*2);c.fill();
+  /* petits capteurs lateraux dans le capuchon */
+  c.fillStyle='#4FB3D9';
+  c.beginPath();c.arc(-11,-20,1.6,0,Math.PI*2);c.arc(11,-20,1.6,0,Math.PI*2);c.fill();
+  /* --- bras mecanique tendu (presente un composant) --- */
+  c.strokeStyle='#8A94AC';c.lineWidth=3;
+  c.beginPath();c.moveTo(28,2);c.lineTo(40,-6);c.lineTo(46,4);c.stroke();c.lineWidth=1;
+  c.fillStyle='#B85C2E';c.save();c.translate(46,4);c.rotate(t*2);
+  c.fillRect(-4,-4,8,8);c.restore();
+  /* rivets d'epaule */
+  c.fillStyle='#8A94AC';
+  c.beginPath();c.arc(-26,-4,2,0,Math.PI*2);c.arc(26,-4,2,0,Math.PI*2);c.fill();
+  c.restore();
+}
+function openMarchand(){
+  var ups=upgradableWeapons();
+  if(ups.length===0){marchandDone++;return;}     /* rien a ameliorer : on saute */
+  state='marchand';sfx('level');
+  marchWeaponKey=ups[Math.floor(rand()*ups.length)];
+  marchExoCur=pickExo();
+  var w=WEAPONS[marchWeaponKey];
+  document.getElementById('marchWeapon').innerHTML=
+    'Arme propos\u00E9e : '+w.ic+' <span style="color:var(--copper)">'+w.nom+'</span> '+
+    '<small style="color:var(--dim)">niv '+player.weapons[marchWeaponKey]+' \u2192 '+(player.weapons[marchWeaponKey]+1)+'</small>';
+  document.getElementById('marchExo').textContent=marchExoCur.e;
+  document.getElementById('marchAide').textContent='';
+  document.getElementById('marchFeed').textContent='';
+  var inp=document.getElementById('marchInput');
+  inp.value='';inp.disabled=false;
+  document.getElementById('marchGo').disabled=false;
+  document.getElementById('marchSkip').style.display='block';
+  document.getElementById('ovMarchand').classList.add('on');
+  drawMarchandPortrait();
+  setTimeout(function(){inp.focus();},50);
+}
+function validateMarchand(){
+  if(state!=='marchand'||!marchExoCur)return;
+  var inp=document.getElementById('marchInput');
+  var feed=document.getElementById('marchFeed');
+  if(checkExo(marchExoCur,inp.value)){
+    player.weapons[marchWeaponKey]=(player.weapons[marchWeaponKey]||0)+1;
+    refreshSlots();
+    feed.textContent='Correct ! '+WEAPONS[marchWeaponKey].nom+' pass\u00E9 au niveau '+player.weapons[marchWeaponKey]+'.';
+    feed.style.color='#7CFF9E';sfx('soin');
+    inp.disabled=true;document.getElementById('marchGo').disabled=true;
+    document.getElementById('marchSkip').style.display='none';
+    marchandDone++;
+    setTimeout(closeMarchand,1100);
+  }else{
+    feed.textContent='Incorrect. Indice affich\u00E9 ci-dessus \u2014 r\u00E9essaie ou passe.';
+    feed.style.color='#FF5A5A';sfx('hit');
+    document.getElementById('marchAide').textContent='\u2699 M\u00E9thode : '+marchExoCur.aide;
+  }
+}
+function closeMarchand(){
+  document.getElementById('ovMarchand').classList.remove('on');
+  startCountdown();
+}
+/* compte a rebours de 3 s avec invulnerabilite, pour ne pas se faire toucher a la reprise */
+var cdTimer=null;
+function startCountdown(){
+  state='countdown';
+  player.iframes=Math.max(player.iframes,3.2);   /* couvre les 3 s + petite marge */
+  var n=3;
+  var cd=document.getElementById('cdNum');
+  cd.textContent=n;
+  document.getElementById('ovCountdown').classList.add('on');
+  sfx('tick');
+  if(cdTimer)clearInterval(cdTimer);
+  cdTimer=setInterval(function(){
+    n--;
+    if(n<=0){
+      clearInterval(cdTimer);cdTimer=null;
+      document.getElementById('ovCountdown').classList.remove('on');
+      state='play';
+    }else{cd.textContent=n;sfx('tick');}
+  },1000);
 }
 function applyChoice(ch){
   if(ch.kind==='heal'){player.hp=Math.min(player.hpMax,player.hp+40);}
@@ -1866,7 +2064,7 @@ function buildPauseStats(){
   var men=hpScale();
   var h='Temps : <b>'+fmtTime(t)+'<\/b> \u00B7 Palier <b>'+palier+'<\/b> \u00B7 Menace <b>x'+
     (men<100?men.toFixed(1):Math.round(men))+'<\/b><br>'+
-    'Ch\u00E2ssis : <b>'+player.chassis.nom+'<\/b> \u00B7 '+MODES[selMode].nom+'<br>'+
+    'Ch\u00E2ssis : <b>'+player.chassis.nom+'<\/b><br>'+
     'PV : <b>'+Math.ceil(player.hp)+' / '+player.hpMax+'<\/b> \u00B7 Armure : <b>'+player.armor+'<\/b><br>'+
     'D\u00E9g\u00E2ts : <b>x'+player.dmgMul.toFixed(2)+'<\/b> \u00B7 Recharge : <b>x'+player.cdMul.toFixed(2)+'<\/b><br>'+
     'Vitesse : <b>'+Math.round(player.spd/2.55*100)+'%<\/b> \u00B7 Collecte : <b>'+Math.round(player.magnet)+' px<\/b><br><br>';
@@ -1909,6 +2107,9 @@ cv.addEventListener('touchend',function(e){e.preventDefault();joy.on=false;joy.d
 /* ---------------- Update ---------------- */
 function update(dt){
   t+=dt;frame++;
+  /* marchand technique toutes les 2 minutes */
+  marchandTimer+=dt;
+  if(marchandTimer>=120){marchandTimer=0;openMarchand();return;}
   /* deplacement joueur */
   var mx=0,my=0;
   if(keys['z']||keys['w']||keys['arrowup'])my-=1;
@@ -1922,7 +2123,7 @@ function update(dt){
   if(player.iframes>0)player.iframes-=dt;
 
   /* spawn : l'intervalle chute exponentiellement vers un plancher */
-  var interval=Math.max(1.05*Math.pow(0.5,t*diffK()/420),0.09);
+  var interval=Math.max(1.05*Math.pow(0.5,t/420),0.09);
   spawnTimer-=dt;
   if(spawnTimer<=0&&enemies.length<300){
     spawnTimer=interval;
@@ -1934,7 +2135,7 @@ function update(dt){
   }
   /* elites */
   if(t>90){eliteTimer-=dt;
-    if(eliteTimer<=0){eliteTimer=Math.max(46-t*diffK()*0.02,22);spawnElite();}}
+    if(eliteTimer<=0){eliteTimer=Math.max(46-t*0.02,22);spawnElite();}}
   /* encerclement : essaim en formation orbitale */
   if(t>200){essaimTimer-=dt;
     if(essaimTimer<=0){essaimTimer=78;
@@ -2383,29 +2584,6 @@ function render(){
 
   var sx=(Math.random()-0.5)*shake,sy=(Math.random()-0.5)*shake;
   ctx.save();ctx.translate(-cam.x+sx,-cam.y+sy);
-
-  /* --- grille de circuit lumineuse (espace monde) --- */
-  var gs=ecoMode?96:64,x0=Math.floor(cam.x/gs)*gs,y0=Math.floor(cam.y/gs)*gs;
-  ctx.strokeStyle='rgba(79,179,217,0.06)';ctx.lineWidth=1;
-  ctx.beginPath();
-  for(var gx=x0;gx<cam.x+W+gs;gx+=gs){ctx.moveTo(gx,cam.y);ctx.lineTo(gx,cam.y+H);}
-  for(var gy=y0;gy<cam.y+H+gs;gy+=gs){ctx.moveTo(cam.x,gy);ctx.lineTo(cam.x+W,gy);}
-  ctx.stroke();
-  if(!ecoMode){
-    /* n\u0153uds de circuit : pastilles lumineuses qui pulsent aux intersections */
-    for(var px2=x0;px2<cam.x+W+gs;px2+=gs)for(var py2=y0;py2<cam.y+H+gs;py2+=gs){
-      var seed=((px2*31+py2*17)%11+11)%11;
-      if(seed===0){
-        var pulse=0.3+0.5*Math.sin(t*1.5+px2*0.05+py2*0.03);
-        ctx.fillStyle='rgba(224,138,60,'+(0.12+pulse*0.18)+')';
-        ctx.beginPath();ctx.arc(px2,py2,1.8+pulse,0,Math.PI*2);ctx.fill();
-      }else if(seed===4){
-        /* petit trace de piste horizontale vers le noeud voisin */
-        ctx.strokeStyle='rgba(79,179,217,0.10)';
-        ctx.beginPath();ctx.moveTo(px2,py2);ctx.lineTo(px2+gs,py2);ctx.stroke();
-      }
-    }
-  }
 
   /* aura onde */
   if(player.weapons.onde){
@@ -3066,6 +3244,7 @@ function drawPlayer(){
 setInterval(function(){
   if(state==='play')update(1/60);
   if(state!=='menu')render();
+  if(state==='marchand')drawMarchandPortrait();
   fpsCount++;
   var nw=Date.now();
   if(nw-fpsLast>=1000){
@@ -3089,7 +3268,6 @@ function startGame(){
   gemPitch=0;scorePublished=false;
   if(isDaily){
     rng=mulberry32(seedFromString(dailyKey()));
-    selMode=0;                      /* defi = toujours mode Ingenieur */
     selChassis=dailyChassis();      /* chassis du jour impose */
   }else{
     rng=Math.random;
@@ -3106,6 +3284,7 @@ function startGame(){
   turrets=[];saws=[];beams=[];shells=[];booms=[];particles=[];ebullets=[];
   mines=[];firepools=[];hazards=[];flameT=0;lastBolt=-1;
   secondChanceUsed=false;quizOk=0;quizTot=0;
+  usedExos=[];marchandTimer=0;marchandDone=0;
   decorInit=false;
   essaimTimer=30;
   t=0;kills=0;frame=0;spawnTimer=0.5;eliteTimer=0;bossIdx=0;bossAlive=null;shake=0;palier=0;
@@ -3165,7 +3344,7 @@ function finalGameOver(){
   pnl.className='panel lose';
   document.getElementById('endTitle').textContent='SYST\u00C8ME HORS SERVICE';
   /* record local (separe par mode) */
-  var bestKey='technoSurvivorBest'+(MODES[selMode].id==='stag'?'Stag':'');
+  var bestKey='technoSurvivorBest';
   var best=0;
   try{best=parseFloat(localStorage.getItem(bestKey)||'0');}catch(err){}
   var record=t>best;
@@ -3175,7 +3354,6 @@ function finalGameOver(){
     'Le r\u00E9seau a eu raison de votre machine. Record actuel : '+fmtTime(Math.max(best,t))+'.';
   /* credits gagnes */
   var gain=Math.floor(t/10)+Math.floor(kills/20)+palier*25+(bossIdx-(bossAlive?1:0))*15;
-  if(MODES[selMode].id==='stag')gain=Math.floor(gain*0.5);
   atelier.cr+=gain;saveAtelier();updateCred();
   document.getElementById('endStats').innerHTML=
     (isDaily?'<b style="color:#B96CFF">D\u00E9fi du jour '+dailyKey()+'<\/b><br>':'')+
@@ -3188,14 +3366,8 @@ function finalGameOver(){
     'Questions du brevet : <b>'+quizOk+' / '+quizTot+'<\/b><br>'+
     'Cr\u00E9dits gagn\u00E9s : <b style="color:#FFD24A">+'+gain+' \u2699<\/b> (total : '+atelier.cr+')';
   var btnP=document.getElementById('btnPub');
-  if(MODES[selMode].id==='stag'){
-    btnP.disabled=true;
-    document.getElementById('pubMsg').textContent='Classement r\u00E9serv\u00E9 au mode Ing\u00E9nieur.';
-    document.getElementById('pubMsg').style.color='#8A94AC';
-  }else{
-    btnP.disabled=false;
-    document.getElementById('pubMsg').textContent='';
-  }
+  btnP.disabled=false;
+  document.getElementById('pubMsg').textContent='';
   try{
     var sp=localStorage.getItem('technoSurvivorPseudo');
     if(sp)document.getElementById('pseudoIn').value=sp;
@@ -3209,13 +3381,15 @@ function updateDailyInfo(){
 }
 function backToMenu(){
   isDaily=false;
+  if(cdTimer){clearInterval(cdTimer);cdTimer=null;}
+  document.getElementById('ovMarchand').classList.remove('on');
+  document.getElementById('ovCountdown').classList.remove('on');
   try{
     var sc=parseInt(localStorage.getItem('technoSurvivorChassis'),10);
     selChassis=(sc>=0&&sc<CHASSIS.length)?sc:0;
-    var sm=parseInt(localStorage.getItem('technoSurvivorMode'),10);
-    selMode=(sm>=0&&sm<MODES.length)?sm:0;
-  }catch(errB){selChassis=0;selMode=0;}
-  buildModeGrid();buildChassisGrid();
+  }catch(errB){selChassis=0;}
+  selMode=0;
+  buildChassisGrid();
   updateCred();updateResumeBtn();updateDailyInfo();
   document.getElementById('ovEnd').classList.remove('on');
   document.getElementById('hud').style.display='none';
@@ -3265,13 +3439,19 @@ document.getElementById('btnBoard').addEventListener('click',function(){
   if(menuLbOpen)loadBoard(box,null);
   else box.innerHTML='';
 });
-buildModeGrid();
 buildChassisGrid();
 document.getElementById('btnTuto').addEventListener('click',function(){
   document.getElementById('ovTuto').classList.add('on');
 });
 document.getElementById('btnTutoClose').addEventListener('click',function(){
   document.getElementById('ovTuto').classList.remove('on');
+});
+document.getElementById('marchGo').addEventListener('click',validateMarchand);
+document.getElementById('marchInput').addEventListener('keydown',function(e){
+  if(e.key==='Enter')validateMarchand();
+});
+document.getElementById('marchSkip').addEventListener('click',function(){
+  marchandDone++;closeMarchand();
 });
 document.getElementById('reviveBtn').addEventListener('click',function(){
   document.getElementById('ovRevive').classList.remove('on');
