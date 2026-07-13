@@ -183,6 +183,10 @@ h1 .t1{color:var(--steel);}h1 .t2{color:var(--copper);}
   </div>
   <div class="bar"><div class="fill" id="hpFill" style="width:100%"></div><div class="txt" id="hpTxt">100 / 100</div></div>
   <div class="bar" style="height:8px;"><div class="fill" id="xpFill" style="width:0%"></div></div>
+  <div id="classGaugeWrap" style="display:none;margin-top:4px;">
+    <div style="font-size:10px;color:#3FD98A;font-family:'JetBrains Mono',monospace;margin-bottom:2px;">&#128225; JAUGE DE CLASSE <span id="classGaugePct">0%</span></div>
+    <div class="bar" style="height:9px;background:#0E1526;"><div class="fill" id="classGaugeFill" style="width:0%;background:linear-gradient(90deg,#1F7A4D,#3FD98A);"></div></div>
+  </div>
   <div id="slots"></div>
 </div>
 <div id="banner"></div>
@@ -204,6 +208,7 @@ h1 .t1{color:var(--steel);}h1 .t2{color:var(--copper);}
   <button class="btn" id="btnResumeRun" style="display:none;margin-bottom:10px;background:linear-gradient(90deg,#2E6A8E,#4FB3D9);">REPRENDRE LA PARTIE</button>
   <button class="btn" id="btnStart">D&Eacute;MARRER LA SIMULATION</button>
   <button class="btn" id="btnDaily" style="margin-top:10px;background:linear-gradient(90deg,#6B3FA0,#B96CFF);">&#128197; D&Eacute;FI DU JOUR &mdash; <span id="dailyInfo"></span></button>
+  <button class="btn" id="btnClasse" style="margin-top:10px;background:linear-gradient(90deg,#1F7A4D,#3FD98A);">&#128225; MODE CLASSE &mdash; coop vs prof</button>
   <div class="pubrow" id="dailyPassRow" style="display:none;">
     <input type="password" id="dailyPass" placeholder="Mot de passe du d&eacute;fi">
     <button class="btn2" id="btnDailyGo" style="border-color:#B96CFF;color:#B96CFF;">LANCER</button>
@@ -213,6 +218,90 @@ h1 .t1{color:var(--steel);}h1 .t2{color:var(--copper);}
   <button class="btn2" id="btnBoard" style="width:100%;margin-top:10px;">VOIR LE CLASSEMENT</button>
   <div class="lb" id="menuLb"></div>
   <button class="btn2" id="btnAdmin" style="width:100%;margin-top:10px;border-color:#2A3A66;color:var(--dim);font-size:11px;">MOD&Eacute;RATION DU CLASSEMENT (PROF)</button>
+</div></div>
+
+<!-- ============ MODE CLASSE : choix du role ============ -->
+<div class="overlay" id="ovClasse"><div class="panel">
+  <h1 style="font-size:24px;"><span class="t1">MODE</span> <span style="color:#3FD98A">CLASSE</span></h1>
+  <p class="sub">La classe coop&egrave;re pour survivre. Le prof invoque les menaces ; seuls les <b>exercices r&eacute;solus</b> activent les d&eacute;fenses. Le savoir est votre arme.</p>
+  <button class="btn" id="btnRoleProf" style="background:linear-gradient(90deg,#B85C2E,#E08A3C);">&#128081; JE SUIS LE PROF (ma&icirc;tre du jeu)</button>
+  <button class="btn" id="btnRoleEleve" style="margin-top:10px;background:linear-gradient(90deg,#1F7A4D,#3FD98A);">&#129302; JE SUIS UN &Eacute;L&Egrave;VE</button>
+  <button class="btn2" id="btnClasseBack" style="margin-top:14px;">&larr; Retour</button>
+</div></div>
+
+<!-- ============ MODE CLASSE : creation salle (prof) ============ -->
+<div class="overlay" id="ovProfRoom"><div class="panel">
+  <h1 style="font-size:22px;"><span class="t2">SALLE</span> DU PROF</h1>
+  <p class="sub">Cr&eacute;e une salle et communique le code aux &eacute;l&egrave;ves. Ils le saisiront pour rejoindre.</p>
+  <div class="pubrow">
+    <input type="text" id="profRoomCode" placeholder="Code (ex : TECHNO4B)" autocomplete="off" maxlength="12" style="text-transform:uppercase;">
+    <button class="btn2" id="btnProfCreate" style="border-color:#E08A3C;color:#E08A3C;">CR&Eacute;ER</button>
+  </div>
+  <div id="profRoomMsg" style="font-family:'JetBrains Mono',monospace;font-size:11px;min-height:14px;color:var(--danger);"></div>
+  <div id="profLobby" style="display:none;">
+    <div style="margin:10px 0;font-size:13px;">Salle <b id="profRoomName" style="color:#3FD98A"></b> &mdash; <span id="profCount">0</span> &eacute;l&egrave;ve(s) connect&eacute;(s)</div>
+    <div id="profPlayerList" style="text-align:left;font-size:12px;max-height:140px;overflow-y:auto;margin-bottom:10px;"></div>
+    <button class="btn" id="btnProfStart" style="background:linear-gradient(90deg,#1F7A4D,#3FD98A);">LANCER LA PARTIE</button>
+  </div>
+  <button class="btn2" id="btnProfBack" style="margin-top:12px;">&larr; Retour</button>
+</div></div>
+
+<!-- ============ MODE CLASSE : connexion (eleve) ============ -->
+<div class="overlay" id="ovEleveRoom"><div class="panel">
+  <h1 style="font-size:22px;"><span style="color:#3FD98A">REJOINDRE</span> UNE SALLE</h1>
+  <p class="sub">Saisis le code donn&eacute; par ton professeur et ton pseudo.</p>
+  <div class="pubrow">
+    <input type="text" id="eleveRoomCode" placeholder="Code de la salle" autocomplete="off" maxlength="12" style="text-transform:uppercase;">
+  </div>
+  <div class="pubrow" style="margin-top:8px;">
+    <input type="text" id="elevePseudo" placeholder="Ton pseudo" autocomplete="off" maxlength="16">
+    <button class="btn2" id="btnEleveJoin" style="border-color:#3FD98A;color:#3FD98A;">REJOINDRE</button>
+  </div>
+  <div id="eleveRoomMsg" style="font-family:'JetBrains Mono',monospace;font-size:11px;min-height:14px;color:var(--danger);"></div>
+  <div id="eleveLobby" style="display:none;margin-top:10px;font-size:13px;">
+    Connect&eacute; &agrave; <b id="eleveRoomName" style="color:#3FD98A"></b>.<br>En attente du lancement par le prof&hellip;
+    <div class="load-dots" style="margin-top:8px;">&#9679; &#9679; &#9679;</div>
+  </div>
+  <button class="btn2" id="btnEleveBack" style="margin-top:12px;">&larr; Retour</button>
+</div></div>
+
+<!-- ============ MODE CLASSE : bouclier de connaissances (eleve) ============ -->
+<div class="overlay" id="ovShield"><div class="panel">
+  <div style="font-size:34px;margin-bottom:4px;">&#128737;&#65039;</div>
+  <h1 style="font-size:21px;"><span style="color:#3FD98A">BOUCLIER</span> DE CONNAISSANCES</h1>
+  <p class="sub">Menace lourde d&eacute;tect&eacute;e ! R&eacute;sous l&rsquo;exercice pour d&eacute;clencher une <b style="color:#3FD98A">onde de d&eacute;fense</b> qui balaie l&rsquo;arène. Chaque bonne r&eacute;ponse fait aussi monter la <b>jauge de classe</b>.</p>
+  <div class="exobox" id="shieldExo" style="margin-bottom:8px;"></div>
+  <div class="pubrow">
+    <input type="text" id="shieldInput" placeholder="Ta r&eacute;ponse" autocomplete="off">
+    <button class="btn2" id="shieldGo" style="border-color:#3FD98A;color:#3FD98A;">ACTIVER</button>
+  </div>
+  <div id="shieldAide" style="font-size:11px;color:var(--dim);margin-top:8px;min-height:14px;"></div>
+  <div id="shieldFeed" style="font-family:'JetBrains Mono',monospace;font-size:12px;min-height:16px;margin-top:6px;"></div>
+  <button class="btn2" id="shieldSkip" style="margin-top:10px;border-color:#2A3A66;color:#8A94AC;">ABANDONNER (pas de d&eacute;fense)</button>
+</div></div>
+
+<!-- ============ MODE CLASSE : panneau de controle prof ============ -->
+<div class="overlay" id="ovProfPanel"><div class="panel" style="max-width:560px;">
+  <h1 style="font-size:22px;"><span class="t2">MA&Icirc;TRE</span> DU R&Eacute;SEAU</h1>
+  <p class="sub">Salle <b id="ppRoomName" style="color:#3FD98A"></b> &mdash; <span id="ppCount">0</span> survivant(s). Invoque les menaces : les <b>vagues lourdes et les boss d&eacute;clenchent un exercice</b> chez les &eacute;l&egrave;ves.</p>
+  <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;">
+    <div style="flex:1;">Jauge de classe
+      <div style="background:#0E1526;border:1px solid #2A3A66;border-radius:8px;height:14px;overflow:hidden;margin-top:3px;">
+        <div id="ppGauge" style="height:100%;width:0%;background:linear-gradient(90deg,#1F7A4D,#3FD98A);transition:width .3s;"></div>
+      </div>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;">&#9200; <span id="ppClock">00:00</span></div>
+  </div>
+  <p class="rules" style="margin:8px 0 4px;"><b>Invoquer une vague</b> <span style="color:var(--dim);font-weight:400;">(l&eacute;g&egrave;re &mdash; sans exercice)</span></p>
+  <div id="ppWaveBtns" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div>
+  <p class="rules" style="margin:10px 0 4px;"><b>Assaut lourd</b> <span style="color:var(--dim);font-weight:400;">(d&eacute;clenche un exercice-bouclier)</span></p>
+  <div style="display:flex;gap:6px;">
+    <button class="btn2" id="btnProfHorde" style="flex:1;border-color:#E08A3C;color:#E08A3C;">&#127754; HORDE</button>
+    <button class="btn2" id="btnProfBoss" style="flex:1;border-color:#FF5A5A;color:#FF5A5A;">&#128128; BOSS</button>
+  </div>
+  <div id="ppLog" style="text-align:left;font-size:11px;color:var(--dim);max-height:80px;overflow-y:auto;margin-top:10px;font-family:'JetBrains Mono',monospace;"></div>
+  <div id="ppPlayers" style="text-align:left;font-size:12px;max-height:110px;overflow-y:auto;margin-top:8px;"></div>
+  <button class="btn2" id="btnProfEnd" style="margin-top:12px;border-color:var(--danger);color:var(--danger);">TERMINER LA PARTIE</button>
 </div></div>
 
 <!-- ============ TUTO ============ -->
@@ -700,6 +789,35 @@ function buildEcoGrid(){
 var FB_URL='https://techno-survivor-default-rtdb.europe-west1.firebasedatabase.app/scores';
 var FB_DEFI='https://techno-survivor-default-rtdb.europe-west1.firebasedatabase.app/defi';
 var FB_TELE='https://techno-survivor-default-rtdb.europe-west1.firebasedatabase.app/telemetrie';
+var FB_ROOMS='https://techno-survivor-default-rtdb.europe-west1.firebasedatabase.app/rooms';
+/* ---------------- Mode Classe : etat reseau ---------------- */
+var mpRole=null;          /* 'prof' | 'eleve' | null */
+var mpRoom=null;          /* code de la salle, ex 'TECHNO4B' */
+var mpPseudo='';          /* pseudo eleve */
+var mpPollTimer=null;     /* interval de synchro */
+var mpLastEventTs=0;      /* horodatage du dernier evenement traite */
+var mpPlayers={};         /* {pseudo:{hp,alive,score,ts}} vu par le prof */
+var mpClassGauge=0;       /* jauge de connaissances partagee (0-100) */
+var mpMode=false;         /* true = partie en cours cote eleve (spawn pilote par le prof) */
+var mpEvtTimer=null;      /* interval d'ecoute des evenements du prof */
+var mpStatePushTimer=null;/* interval d'envoi de l'etat de l'eleve */
+var mpSuperFired=false;   /* super-attaque deja declenchee pour le palier courant */
+function mpRoomUrl(){return FB_ROOMS+'/'+encodeURIComponent(mpRoom);}
+function fbPut(url,obj,cb){
+  fetch(url+'.json',{method:'PUT',body:JSON.stringify(obj)})
+    .then(function(r){return r.json();}).then(function(d){if(cb)cb(d);})
+    .catch(function(){if(cb)cb(null);});
+}
+function fbPatch(url,obj,cb){
+  fetch(url+'.json',{method:'PATCH',body:JSON.stringify(obj)})
+    .then(function(r){return r.json();}).then(function(d){if(cb)cb(d);})
+    .catch(function(){if(cb)cb(null);});
+}
+function fbGet(url,cb){
+  fetch(url+'.json')
+    .then(function(r){return r.json();}).then(function(d){cb(d);})
+    .catch(function(){cb(null);});
+}
 var scorePublished=false;
 function publishScore(){
   if(scorePublished)return;
@@ -2146,7 +2264,7 @@ function update(dt){
   /* spawn : l'intervalle chute exponentiellement vers un plancher */
   var interval=Math.max(1.05*Math.pow(0.5,t/420),0.09);
   spawnTimer-=dt;
-  if(spawnTimer<=0&&enemies.length<300){
+  if(!mpMode&&spawnTimer<=0&&enemies.length<300){
     spawnTimer=interval;
     var avail=TYPES.filter(function(ty){return t>=ty.from;});
     var tot=0;avail.forEach(function(ty){tot+=ty.w;});
@@ -2155,10 +2273,10 @@ function update(dt){
     if(t>240&&rand()<0.12)spawnEnemy(avail[avail.length-1]);
   }
   /* elites */
-  if(t>90){eliteTimer-=dt;
+  if(!mpMode&&t>90){eliteTimer-=dt;
     if(eliteTimer<=0){eliteTimer=Math.max(46-t*0.02,22);spawnElite();}}
   /* encerclement : essaim en formation orbitale */
-  if(t>200){essaimTimer-=dt;
+  if(!mpMode&&t>200){essaimTimer-=dt;
     if(essaimTimer<=0){essaimTimer=78;
       showBanner('ENCERCLEMENT');sfx('alarm');
       var tierE=Math.floor(t/900);
@@ -2172,8 +2290,8 @@ function update(dt){
           orbA:aV,orbR:230});
       }
     }}
-  /* boss : toutes les 4 minutes, sans limite */
-  if(t>=240*(bossIdx+1)&&!bossAlive){spawnBoss();}
+  /* boss : toutes les 4 minutes, sans limite (desactive en mode classe : c'est le prof qui invoque) */
+  if(!mpMode&&t>=240*(bossIdx+1)&&!bossAlive){spawnBoss();}
   /* palier : toutes les 15 minutes */
   var pal=Math.floor(t/900);
   if(pal>palier){palier=pal;
@@ -3359,6 +3477,7 @@ function startGame(){
   document.getElementById('ovMenu').classList.remove('on');
   document.getElementById('ovEnd').classList.remove('on');
   document.getElementById('hud').style.display='flex';
+  document.getElementById('classGaugeWrap').style.display=mpMode?'block':'none';
   state='play';
   if(isDaily)showBanner('DEFI DU JOUR '+dailyKey());
 }
@@ -3463,7 +3582,7 @@ function backToMenu(){
   document.getElementById('ovMenu').classList.add('on');
   state='menu';
 }
-document.getElementById('btnStart').addEventListener('click',function(){isDaily=false;startGame();});
+document.getElementById('btnStart').addEventListener('click',function(){isDaily=false;mpMode=false;startGame();});
 document.getElementById('btnRetry').addEventListener('click',function(){startGame();});
 var DAILY_PASS='DDJ';
 function launchDaily(){
@@ -3471,7 +3590,7 @@ function launchDaily(){
   if(v===DAILY_PASS){
     document.getElementById('dailyPassRow').style.display='none';
     document.getElementById('dailyMsg').textContent='';
-    isDaily=true;startGame();
+    isDaily=true;mpMode=false;startGame();
   }else{
     document.getElementById('dailyMsg').textContent='Mot de passe incorrect.';
   }
@@ -3496,6 +3615,417 @@ document.getElementById('dailyPass').addEventListener('keydown',function(e){
   if(e.key==='Enter')launchDaily();
 });
 document.getElementById('btnMenu').addEventListener('click',backToMenu);
+
+/* ================= MODE CLASSE : couche 1 (salon) ================= */
+function ovShow(id){document.getElementById(id).classList.add('on');}
+function ovHide(id){document.getElementById(id).classList.remove('on');}
+function mpStopPoll(){if(mpPollTimer){clearInterval(mpPollTimer);mpPollTimer=null;}}
+function mpCleanup(){
+  mpStopPoll();
+  /* si eleve, retire son entree de la salle */
+  if(mpRole==='eleve'&&mpRoom&&mpPseudo){
+    fetch(mpRoomUrl()+'/players/'+encodeURIComponent(mpPseudo)+'.json',{method:'DELETE'});
+  }
+  mpRole=null;mpRoom=null;mpPseudo='';mpPlayers={};mpClassGauge=0;mpLastEventTs=0;
+}
+function sanitizeCode(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12);}
+
+/* --- entree dans le mode classe --- */
+document.getElementById('btnClasse').addEventListener('click',function(){ovShow('ovClasse');});
+document.getElementById('btnClasseBack').addEventListener('click',function(){ovHide('ovClasse');});
+document.getElementById('btnRoleProf').addEventListener('click',function(){
+  ovHide('ovClasse');ovShow('ovProfRoom');
+  document.getElementById('profRoomCode').focus();
+});
+document.getElementById('btnRoleEleve').addEventListener('click',function(){
+  ovHide('ovClasse');ovShow('ovEleveRoom');
+  document.getElementById('eleveRoomCode').focus();
+});
+
+/* --- PROF : creer une salle --- */
+function profCreateRoom(){
+  var code=sanitizeCode(document.getElementById('profRoomCode').value);
+  var msg=document.getElementById('profRoomMsg');
+  if(code.length<3){msg.textContent='Code trop court (3 caract\u00E8res minimum).';return;}
+  mpRole='prof';mpRoom=code;
+  /* cree/ecrase le noeud de la salle : etat d'attente */
+  fbPut(mpRoomUrl(),{
+    state:'lobby',host:'prof',created:Date.now(),
+    players:{},events:{},gauge:0
+  },function(){
+    document.getElementById('profRoomName').textContent=code;
+    document.getElementById('profLobby').style.display='block';
+    msg.textContent='';
+    mpStartLobbyPollProf();
+  });
+}
+document.getElementById('btnProfCreate').addEventListener('click',profCreateRoom);
+document.getElementById('profRoomCode').addEventListener('keydown',function(e){if(e.key==='Enter')profCreateRoom();});
+
+function mpStartLobbyPollProf(){
+  mpStopPoll();
+  mpPollTimer=setInterval(function(){
+    fbGet(mpRoomUrl()+'/players',function(pl){
+      mpPlayers=pl||{};
+      var names=Object.keys(mpPlayers);
+      document.getElementById('profCount').textContent=names.length;
+      var list=document.getElementById('profPlayerList');
+      list.innerHTML=names.length?names.map(function(n){
+        return '<div>\u{1F916} '+n+'<\/div>';
+      }).join(''):'<div style="color:var(--dim)">Aucun \u00E9l\u00E8ve pour l\u2019instant\u2026<\/div>';
+    });
+  },1500);
+}
+document.getElementById('btnProfBack').addEventListener('click',function(){
+  if(mpRoom){fetch(mpRoomUrl()+'.json',{method:'DELETE'});} /* ferme la salle */
+  mpCleanup();
+  document.getElementById('profLobby').style.display='none';
+  document.getElementById('profRoomCode').value='';
+  ovHide('ovProfRoom');
+});
+
+/* --- ELEVE : rejoindre une salle --- */
+function eleveJoinRoom(){
+  var code=sanitizeCode(document.getElementById('eleveRoomCode').value);
+  var pseudo=(document.getElementById('elevePseudo').value||'').trim().slice(0,16);
+  var msg=document.getElementById('eleveRoomMsg');
+  if(code.length<3){msg.textContent='Code de salle invalide.';return;}
+  if(pseudo.length<1){msg.textContent='Choisis un pseudo.';return;}
+  /* verifie que la salle existe */
+  fbGet(FB_ROOMS+'/'+encodeURIComponent(code),function(room){
+    if(!room){msg.textContent='Aucune salle avec ce code.';return;}
+    mpRole='eleve';mpRoom=code;mpPseudo=pseudo;
+    fbPut(mpRoomUrl()+'/players/'+encodeURIComponent(pseudo),
+      {hp:100,alive:true,score:0,ts:Date.now()},function(){
+        msg.textContent='';
+        document.getElementById('eleveRoomName').textContent=code;
+        document.getElementById('eleveLobby').style.display='block';
+        mpStartLobbyPollEleve();
+      });
+  });
+}
+document.getElementById('btnEleveJoin').addEventListener('click',eleveJoinRoom);
+document.getElementById('elevePseudo').addEventListener('keydown',function(e){if(e.key==='Enter')eleveJoinRoom();});
+
+function mpStartLobbyPollEleve(){
+  mpStopPoll();
+  mpPollTimer=setInterval(function(){
+    fbGet(mpRoomUrl()+'/state',function(st){
+      if(st===null){ /* salle fermee par le prof */
+        mpStopPoll();
+        document.getElementById('eleveRoomMsg').textContent='La salle a \u00E9t\u00E9 ferm\u00E9e par le prof.';
+        document.getElementById('eleveLobby').style.display='none';
+        return;
+      }
+      if(st==='playing'){
+        mpStopPoll();
+        startClassGame();
+      }
+    });
+  },1500);
+}
+
+/* ---- ELEVE : demarre la partie en mode classe ---- */
+function startClassGame(){
+  ovHide('ovEleveRoom');
+  document.getElementById('eleveLobby').style.display='none';
+  mpMode=true;isDaily=false;
+  mpLastEventTs=0;mpSuperFired=false;mpClassGauge=0;
+  startGame();                       /* reutilise tout le moteur solo */
+  showBanner('SURVIVEZ ! Le prof invoque les menaces\u2026');
+  mpStartEventListener();
+  mpStartStatePush();
+}
+
+/* ecoute la file d'evenements du prof et applique chaque nouvel evenement */
+function mpStartEventListener(){
+  if(mpEvtTimer)clearInterval(mpEvtTimer);
+  mpEvtTimer=setInterval(function(){
+    if(!mpMode||!mpRoom)return;
+    fbGet(mpRoomUrl()+'/events',function(events){
+      if(!events)return;
+      /* trie par horodatage et applique ceux qu'on n'a pas encore vus */
+      var keys=Object.keys(events).sort(function(a,b){
+        return (events[a].ts||0)-(events[b].ts||0);
+      });
+      keys.forEach(function(k){
+        var ev=events[k];
+        if(!ev||!ev.ts||ev.ts<=mpLastEventTs)return;
+        mpLastEventTs=ev.ts;
+        applyClassEvent(ev);
+      });
+    });
+    /* le prof a-t-il ferme la salle ? + lit la jauge de classe partagee */
+    fbGet(mpRoomUrl(),function(room){
+      if(room===null&&mpMode){endClassGame('Le prof a termin\u00E9 la partie.');return;}
+      if(!room)return;
+      var g=Math.max(0,Math.min(100,room.gauge||0));
+      mpClassGauge=g;
+      updateClassGaugeHud(g);
+      /* seuil atteint : super-attaque cooperative, une seule fois par palier */
+      if(g>=100&&!mpSuperFired){
+        mpSuperFired=true;
+        classSuperAttack();
+        /* le premier a atteindre 100 remet la jauge a 0 pour toute la classe */
+        fbPatch(mpRoomUrl(),{gauge:0});
+      }
+      if(g<100)mpSuperFired=false;   /* rearme pour le prochain palier */
+    });
+  },1200);
+}
+function updateClassGaugeHud(g){
+  var wrap=document.getElementById('classGaugeWrap');
+  if(!wrap)return;
+  wrap.style.display=mpMode?'block':'none';
+  document.getElementById('classGaugeFill').style.width=g+'%';
+  document.getElementById('classGaugePct').textContent=Math.round(g)+'%';
+}
+/* super-attaque cooperative : recompense collective quand la classe a assez revise */
+function classSuperAttack(){
+  showBanner('\u26A1 SUPER-ATTAQUE DE CLASSE ! \u26A1');sfx('evo');
+  /* onde geante : degats massifs a tout l'ecran, boss inclus */
+  pulses.push({x:player.x,y:player.y,r:10,max:900,t:0,rgb:'255,210,74'});
+  pulses.push({x:player.x,y:player.y,r:10,max:700,t:0,rgb:'63,217,138'});
+  shake=Math.max(shake,18);
+  for(var i=enemies.length-1;i>=0;i--){
+    var e=enemies[i];
+    var a=Math.atan2(e.y-player.y,e.x-player.x);
+    if(e.boss){
+      hurt(e,e.hpMax*0.5,Math.cos(a),Math.sin(a),10);   /* enorme coup au boss */
+    }else{
+      hurt(e,e.hpMax*9,Math.cos(a),Math.sin(a),14);      /* balaie tout */
+    }
+  }
+  /* bonus perso : soin + invulnerabilite */
+  if(player){player.hp=Math.min(player.hpMax,player.hp+player.hpMax*0.3);player.iframes=Math.max(player.iframes,2);}
+}
+
+/* applique un evenement recu du prof */
+function applyClassEvent(ev){
+  if(ev.type==='wave'){
+    var ty=TYPES.filter(function(t2){return t2.id===ev.enemy;})[0]||TYPES[0];
+    var n=ev.count||6;
+    for(var i=0;i<n;i++)spawnEnemy(ty);
+    showBanner('VAGUE ENTRANTE !');sfx('alarm');
+  }else if(ev.type==='horde'){
+    var n2=ev.count||20;
+    for(var j=0;j<n2;j++){
+      var ty2=TYPES[Math.floor(rand()*Math.min(TYPES.length,5))];
+      spawnEnemy(ty2);
+    }
+    showBanner('\u{1F30A} HORDE ! Un exercice peut vous sauver');sfx('alarm');
+    if(ev.exo)triggerShieldExo();   /* couche 4 */
+  }else if(ev.type==='boss'){
+    if(!bossAlive)spawnBoss();
+    showBanner('\u{1F480} BOSS INVOQU\u00C9 PAR LE PROF');sfx('alarm');
+    if(ev.exo)triggerShieldExo();   /* couche 4 */
+  }else if(ev.type==='end'){
+    endClassGame('Le prof a termin\u00E9 la partie.');
+  }
+}
+
+/* ===== COUCHE 4 : bouclier de connaissances ===== */
+var shieldExoCur=null;
+function triggerShieldExo(){
+  if(!mpMode)return;
+  if(state==='shield')return;          /* deja un exercice en cours */
+  if(state!=='play'&&state!=='levelup'&&state!=='countdown')return;
+  shieldExoCur=pickExo();
+  state='shield';
+  document.getElementById('shieldExo').textContent=shieldExoCur.e;
+  document.getElementById('shieldAide').textContent='';
+  document.getElementById('shieldFeed').textContent='';
+  var inp=document.getElementById('shieldInput');
+  inp.value='';inp.disabled=false;
+  document.getElementById('shieldGo').disabled=false;
+  document.getElementById('shieldSkip').style.display='block';
+  document.getElementById('ovShield').classList.add('on');
+  sfx('alarm');
+  setTimeout(function(){inp.focus();},50);
+}
+/* onde de defense : repousse et endommage fortement tous les ennemis a l'ecran */
+function shieldNova(){
+  pulses.push({x:player.x,y:player.y,r:10,max:520,t:0,rgb:'63,217,138'});
+  shake=Math.max(shake,10);sfx('evo');
+  for(var i=enemies.length-1;i>=0;i--){
+    var e=enemies[i];
+    var a=Math.atan2(e.y-player.y,e.x-player.x);
+    if(e.boss){
+      hurt(e,e.hpMax*0.18,Math.cos(a),Math.sin(a),6);   /* gros degats mais pas one-shot */
+    }else{
+      e.kb=20;e.kbx=Math.cos(a);e.kby=Math.sin(a);
+      hurt(e,e.hpMax*3,Math.cos(a),Math.sin(a),8);       /* balaye les non-boss */
+    }
+  }
+  player.iframes=Math.max(player.iframes,1.5);
+}
+function validateShield(){
+  if(state!=='shield'||!shieldExoCur)return;
+  var inp=document.getElementById('shieldInput');
+  var feed=document.getElementById('shieldFeed');
+  if(checkExo(shieldExoCur,inp.value)){
+    feed.textContent='D\u00E9fense activ\u00E9e ! Onde de choc d\u00E9clench\u00E9e.';
+    feed.style.color='#3FD98A';
+    inp.disabled=true;document.getElementById('shieldGo').disabled=true;
+    document.getElementById('shieldSkip').style.display='none';
+    mpAddClassGauge(10);              /* +10% jauge de classe (couche 5) */
+    closeShield(true);
+  }else{
+    feed.textContent='Incorrect. Indice ci-dessus \u2014 r\u00E9essaie ou abandonne.';
+    feed.style.color='#FF5A5A';sfx('hit');
+    document.getElementById('shieldAide').textContent='\u2699 M\u00E9thode : '+shieldExoCur.aide;
+  }
+}
+function closeShield(success){
+  document.getElementById('ovShield').classList.remove('on');
+  shieldExoCur=null;
+  if(success){
+    startCountdown();                 /* reprise protegee */
+    setTimeout(shieldNova,400);       /* l'onde part pendant le compte a rebours */
+  }else{
+    startCountdown();                 /* abandon : reprise protegee mais sans onde */
+  }
+}
+/* incremente la jauge de classe partagee (Firebase) ; plafonnee a 100 */
+function mpAddClassGauge(delta){
+  if(!mpRoom)return;
+  fbGet(mpRoomUrl()+'/gauge',function(g){
+    var ng=Math.max(0,Math.min(100,(g||0)+delta));
+    fbPatch(mpRoomUrl(),{gauge:ng});
+    mpClassGauge=ng;
+  });
+}
+document.getElementById('shieldGo').addEventListener('click',validateShield);
+document.getElementById('shieldInput').addEventListener('keydown',function(e){if(e.key==='Enter')validateShield();});
+document.getElementById('shieldSkip').addEventListener('click',function(){closeShield(false);});
+
+
+/* pousse periodiquement l'etat de l'eleve (PV, vie, score) vers la salle */
+function mpStartStatePush(){
+  if(mpStatePushTimer)clearInterval(mpStatePushTimer);
+  mpStatePushTimer=setInterval(function(){
+    if(!mpMode||!mpRoom||!mpPseudo)return;
+    fbPatch(mpRoomUrl()+'/players/'+encodeURIComponent(mpPseudo),{
+      hp:Math.max(0,Math.round(player?player.hp:0)),
+      alive:(state==='play'||state==='levelup'||state==='countdown'||state==='marchand'||state==='revive'),
+      score:kills,ts:Date.now()
+    });
+  },1500);
+}
+
+function endClassGame(msg){
+  mpMode=false;
+  if(mpEvtTimer){clearInterval(mpEvtTimer);mpEvtTimer=null;}
+  if(mpStatePushTimer){clearInterval(mpStatePushTimer);mpStatePushTimer=null;}
+  showBanner(msg||'PARTIE TERMIN\u00C9E');
+  /* laisse la partie solo se terminer normalement (ecran de fin) */
+  if(state==='play')gameOver();
+  mpRole=null;mpRoom=null;mpPseudo='';
+}
+
+document.getElementById('btnEleveBack').addEventListener('click',function(){
+  mpCleanup();
+  document.getElementById('eleveLobby').style.display='none';
+  document.getElementById('eleveRoomCode').value='';
+  document.getElementById('elevePseudo').value='';
+  ovHide('ovEleveRoom');
+});
+
+/* --- PROF : lancer la partie -> ouvre le panneau de controle --- */
+var mpProfClock=0,mpProfTimer=null,mpEventSeq=0;
+document.getElementById('btnProfStart').addEventListener('click',function(){
+  if(!mpRoom)return;
+  fbPatch(mpRoomUrl(),{state:'playing',started:Date.now()},function(){
+    ovHide('ovProfRoom');
+    openProfPanel();
+  });
+});
+
+function openProfPanel(){
+  ovShow('ovProfPanel');
+  document.getElementById('ppRoomName').textContent=mpRoom;
+  buildWaveButtons();
+  mpProfClock=0;mpEventSeq=0;
+  profLog('Partie lanc\u00E9e. \u00C0 toi de jouer, ma\u00EEtre du r\u00E9seau.');
+  /* horloge + synchro periodique de l'etat des eleves */
+  if(mpProfTimer)clearInterval(mpProfTimer);
+  mpProfTimer=setInterval(function(){
+    mpProfClock++;
+    var mm=String(Math.floor(mpProfClock/60)).padStart(2,'0');
+    var ss=String(mpProfClock%60).padStart(2,'0');
+    document.getElementById('ppClock').textContent=mm+':'+ss;
+    profRefreshState();
+  },1000);
+}
+function profLog(msg){
+  var log=document.getElementById('ppLog');
+  var line=document.createElement('div');
+  line.textContent='\u203A '+msg;
+  log.insertBefore(line,log.firstChild);
+  while(log.children.length>20)log.removeChild(log.lastChild);
+}
+/* envoie un evenement dans la file Firebase (les eleves le consomment) */
+function profSendEvent(ev){
+  ev.ts=Date.now();ev.seq=(++mpEventSeq);
+  var evUrl=mpRoomUrl()+'/events/'+ev.ts+'_'+ev.seq;
+  fbPut(evUrl,ev);
+}
+function buildWaveButtons(){
+  var box=document.getElementById('ppWaveBtns');box.innerHTML='';
+  /* icones lisibles pour chaque type d'ennemi */
+  var LABELS={bug:'\u{1F41B} Bug',virus:'\u{1F9A0} Virus',court:'\u26A1 Court-jus',
+    rouille:'\u{1F6E1} Rouille',drone:'\u{1F6F8} Drone',kamikaze:'\u{1F4A5} Kamikaze',nano:'\u2728 Nano'};
+  TYPES.forEach(function(ty){
+    var b=document.createElement('button');
+    b.className='btn2';b.style.fontSize='11px';b.style.padding='7px 4px';
+    b.textContent=LABELS[ty.id]||ty.id;
+    b.addEventListener('click',function(){
+      profSendEvent({type:'wave',enemy:ty.id,count:6});
+      profLog('Vague de '+(LABELS[ty.id]||ty.id)+' (\u00D76) envoy\u00E9e.');
+    });
+    box.appendChild(b);
+  });
+}
+document.getElementById('btnProfHorde').addEventListener('click',function(){
+  profSendEvent({type:'horde',count:20,exo:true});
+  profLog('\u{1F30A} HORDE lourde ! Un exercice prot\u00E8ge les \u00E9l\u00E8ves.');
+});
+document.getElementById('btnProfBoss').addEventListener('click',function(){
+  profSendEvent({type:'boss',exo:true});
+  profLog('\u{1F480} BOSS invoqu\u00E9 ! Exercice-bouclier requis.');
+});
+function profRefreshState(){
+  fbGet(mpRoomUrl(),function(room){
+    if(!room)return;
+    var players=room.players||{};
+    var names=Object.keys(players);
+    var alive=names.filter(function(n){return players[n].alive;});
+    document.getElementById('ppCount').textContent=alive.length;
+    /* jauge de classe */
+    var g=Math.max(0,Math.min(100,room.gauge||0));
+    document.getElementById('ppGauge').style.width=g+'%';
+    /* liste des eleves avec PV et score */
+    var pl=document.getElementById('ppPlayers');
+    pl.innerHTML=names.length?names.map(function(n){
+      var p=players[n];
+      var hpc=p.alive?(p.hp>50?'#3FD98A':p.hp>25?'#FFD24A':'#FF5A5A'):'#555';
+      return '<div style="display:flex;justify-content:space-between;padding:1px 0;">'+
+        '<span>'+(p.alive?'\u{1F916}':'\u{1F480}')+' '+n+'<\/span>'+
+        '<span style="color:'+hpc+'">'+(p.alive?Math.round(p.hp)+' PV':'HS')+
+        ' \u00B7 '+(p.score||0)+' pts<\/span><\/div>';
+    }).join(''):'<div style="color:var(--dim)">En attente\u2026<\/div>';
+  });
+}
+document.getElementById('btnProfEnd').addEventListener('click',function(){
+  if(mpProfTimer){clearInterval(mpProfTimer);mpProfTimer=null;}
+  profSendEvent({type:'end'});
+  if(mpRoom){fetch(mpRoomUrl()+'.json',{method:'DELETE'});}
+  mpCleanup();
+  ovHide('ovProfPanel');
+  showBanner('PARTIE TERMIN\u00C9E');
+});
+
+
 updateDailyInfo();
 document.getElementById('btnResume').addEventListener('click',togglePause);
 document.getElementById('btnPub').addEventListener('click',publishScore);
