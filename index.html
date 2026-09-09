@@ -350,7 +350,7 @@ h1 .t1{color:var(--steel);}h1 .t2{color:var(--copper);}
 <!-- ============ ATELIER ============ -->
 <div class="overlay" id="ovAtelier"><div class="panel">
   <h1 style="font-size:24px;"><span class="t2">ATELIER</span> PERMANENT</h1>
-  <p class="sub">Chaque partie rapporte des cr&eacute;dits (temps, kills, paliers, boss). D&eacute;pensez-les ici en bonus <b>permanents</b>, appliqu&eacute;s &agrave; toutes vos futures parties.</p>
+  <p class="sub">Chaque partie rapporte des cr&eacute;dits (temps, d&eacute;g&acirc;ts inflig&eacute;s, paliers, boss). D&eacute;pensez-les ici en bonus <b>permanents</b>, appliqu&eacute;s &agrave; toutes vos futures parties.</p>
   <div style="margin-bottom:14px;"><span class="cred" id="atCred">&#9881; 0 cr&eacute;dits</span></div>
   <div id="atGrid"></div>
   <div class="pubrow" id="atBtns">
@@ -420,6 +420,10 @@ h1 .t1{color:var(--steel);}h1 .t2{color:var(--copper);}
   <h1 id="endTitle">SYST&Egrave;ME HORS SERVICE</h1>
   <p class="sub" id="endSub"></p>
   <div class="stats" id="endStats"></div>
+  <div id="reviseBox" style="display:none;text-align:left;margin:10px 0;">
+    <button class="btn2" id="btnRevise" style="width:100%;border-color:#FFD24A;color:#FFD24A;">&#128218; &Agrave; R&Eacute;VISER (<span id="reviseCount">0</span>)</button>
+    <div id="reviseList" style="display:none;max-height:220px;overflow-y:auto;margin-top:8px;font-size:12px;"></div>
+  </div>
   <div class="pubrow">
     <input id="pseudoIn" maxlength="14" placeholder="Pseudo">
     <select id="classeIn">
@@ -451,6 +455,9 @@ window.addEventListener('resize',resize);resize();
 var state='menu';
 var palier=0;
 var t=0,kills=0,frame=0;
+var dmgDealt=0;   /* SCORE : total des degats infliges */
+/* 12345 -> '12 345' (lisibilite des gros scores) */
+function fmtNum(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'\u202F');}
 var cam={x:0,y:0};
 var player,enemies,bullets,gems,floaters,zaps,pulses,pickups;
 var turrets,saws,beams,shells,booms,particles,ebullets,mines,firepools,hazards,deathRings;
@@ -786,10 +793,10 @@ function buildEcoGrid(){
     g.appendChild(b);
   });
 }
-var FB_URL='https://techno-survivor-default-rtdb.europe-west1.firebasedatabase.app/scores';
-var FB_DEFI='https://techno-survivor-default-rtdb.europe-west1.firebasedatabase.app/defi';
-var FB_TELE='https://techno-survivor-default-rtdb.europe-west1.firebasedatabase.app/telemetrie';
-var FB_ROOMS='https://techno-survivor-default-rtdb.europe-west1.firebasedatabase.app/rooms';
+var FB_URL='https://vampire-86cf9-default-rtdb.europe-west1.firebasedatabase.app/scores';
+var FB_DEFI='https://vampire-86cf9-default-rtdb.europe-west1.firebasedatabase.app/defi';
+var FB_TELE='https://vampire-86cf9-default-rtdb.europe-west1.firebasedatabase.app/telemetrie';
+var FB_ROOMS='https://vampire-86cf9-default-rtdb.europe-west1.firebasedatabase.app/rooms';
 /* ---------------- Mode Classe : etat reseau ---------------- */
 var mpRole=null;          /* 'prof' | 'eleve' | null */
 var mpRoom=null;          /* code de la salle, ex 'TECHNO4B' */
@@ -802,6 +809,7 @@ var mpMode=false;         /* true = partie en cours cote eleve (spawn pilote par
 var mpEvtTimer=null;      /* interval d'ecoute des evenements du prof */
 var mpStatePushTimer=null;/* interval d'envoi de l'etat de l'eleve */
 var mpSuperFired=false;   /* super-attaque deja declenchee pour le palier courant */
+var mpNullStreak=0;       /* nb de lectures null consecutives (tolerance reseau) */
 function mpRoomUrl(){return FB_ROOMS+'/'+encodeURIComponent(mpRoom);}
 function fbPut(url,obj,cb){
   fetch(url+'.json',{method:'PUT',body:JSON.stringify(obj)})
@@ -835,6 +843,7 @@ function publishScore(){
     palier:palier,
     niveau:player.lvl,
     kills:kills,
+    degats:Math.round(dmgDealt),
     boss:bossIdx-(bossAlive?1:0),
     chassis:CHASSIS[selChassis].nom,
     mode:'ing',
@@ -1143,6 +1152,13 @@ function checkExo(exo,input){
   return normAnswer(exo.rep)===v;
 }
 var secondChanceUsed=false,quizOk=0,quizTot=0;
+/* questions et exercices rates : liste de revision de fin de partie */
+var missedList=[];
+function missedPushExo(exo){
+  for(var i=0;i<missedList.length;i++)
+    if(missedList[i].kind==='exo'&&missedList[i].q===exo.e)return;  /* pas de doublon */
+  missedList.push({kind:'exo',mat:'Technologie',q:exo.e,rep:exo.rep+(exo.unite?' '+exo.unite:'')});
+}
 function quizPoolIdx(){
   var pool=[];
   for(var i=0;i<QBANK.length;i++)
@@ -1187,6 +1203,7 @@ function buildQuestionUI(parent,Q,cb){
         opts.forEach(function(oo){if(oo._ri===Q.ok)oo.classList.add('good');});
       }
       quizTot++;if(good)quizOk++;
+      else missedList.push({kind:'qcm',mat:Q.mat||'Technologie',q:Q.q,rep:Q.r[Q.ok]});
       cb(good,feed);
     });
     opts.push(ob);box.appendChild(ob);
@@ -1205,7 +1222,7 @@ function sInt(v,min,max,dflt){
 function saveRun(){
   if(isDaily)return; /* le defi du jour se joue d\u2019une traite */
   if(state!=='play'&&state!=='pause'&&state!=='levelup')return;
-  var s={v:1,t:Math.floor(t),kills:kills,palier:palier,
+  var s={v:1,t:Math.floor(t),kills:kills,degats:Math.round(dmgDealt),palier:palier,
     bossIdx:bossIdx-(bossAlive?1:0),
     selChassis:selChassis,selMode:selMode,
     freeRerolls:freeRerolls,usedQ:usedQ,
@@ -1243,7 +1260,7 @@ function resumeRun(){
   startGame();
   /* restauration assainie de la progression */
   t=sInt(s.t,0,1e7,0);
-  kills=sInt(s.kills,0,1e9,0);
+  kills=sInt(s.kills,0,1e9,0);dmgDealt=sInt(s.degats,0,1e12,0);
   palier=sInt(s.palier,0,999,0);
   bossIdx=sInt(s.bossIdx,0,999,0);
   freeRerolls=sInt(s.freeRerolls,0,99,0);
@@ -1283,10 +1300,11 @@ function resumeRun(){
 function sendTelemetry(){
   var evoCount=0;
   Object.keys(player.weapons).forEach(function(k){if(player.weapons[k]>=6)evoCount++;});
-  var doc={temps:Math.floor(t),palier:palier,niveau:player.lvl,kills:kills,
+  var doc={temps:Math.floor(t),palier:palier,niveau:player.lvl,kills:kills,degats:Math.round(dmgDealt),
     boss:bossIdx-(bossAlive?1:0),chassis:CHASSIS[selChassis].id,mode:'ing',
     defi:isDaily,armes:player.weapons,passifs:player.passives,evolutions:evoCount,
     quizOk:quizOk,quizTot:quizTot,
+    ratees:missedList.slice(0,20).map(function(m){return {mat:m.mat,q:m.q.slice(0,80)};}),
     date:new Date().toISOString()};
   try{
     fetch(FB_TELE+'.json',{method:'POST',body:JSON.stringify(doc)})
@@ -1446,6 +1464,7 @@ function eSpd(e){
 function statusDamage(e,d,col){
   d=Math.max(1,Math.round(d));
   e.hp-=d;
+  dmgDealt+=Math.max(0,Math.min(d,d+e.hp));   /* compte aussi dans le score */
   floater(e.x,e.y-e.r-4,String(d),col);
   if(e.hp<=0)killEnemy(e);
 }
@@ -1605,6 +1624,8 @@ function hurt(e,dmg,kx,ky,kf){
   if(e.shock&&e.shock>0)dmg=Math.round(dmg*1.15);
   if(e.burn&&e.burn.t>0&&e.slow&&e.slow.t>0&&hasCombo('chalumeau','cryo'))dmg=Math.round(dmg*1.25);
   e.hp-=dmg;e.flash=0.1;
+  /* score = degats reellement infliges (l'exces sur le dernier coup ne compte pas) */
+  dmgDealt+=Math.max(0,Math.min(dmg,dmg+e.hp));
   floater(e.x,e.y-e.r-4,String(dmg),'#FFD24A');
   if(kf&&!e.boss){e.kb=kf;e.kbx=kx;e.kby=ky;}
   if(e.hp<=0)killEnemy(e);
@@ -2116,6 +2137,7 @@ function validateMarchand(){
     feed.textContent='Incorrect. Indice affich\u00E9 ci-dessus \u2014 r\u00E9essaie ou passe.';
     feed.style.color='#FF5A5A';sfx('hit');
     document.getElementById('marchAide').textContent='\u2699 M\u00E9thode : '+marchExoCur.aide;
+    missedPushExo(marchExoCur);
   }
 }
 function closeMarchand(){
@@ -2679,7 +2701,7 @@ function hud(){
   document.getElementById('xpFill').style.width=(player.xp/player.xpNeed*100)+'%';
   document.getElementById('lvlTxt').textContent='NIV '+player.lvl;
   var men=hpScale();
-  document.getElementById('killTxt').textContent=kills+' kills \u00B7 menace x'+
+  document.getElementById('killTxt').textContent=fmtNum(dmgDealt)+' pts \u00B7 '+kills+' kills \u00B7 menace x'+
     (men<100?men.toFixed(1):Math.round(men));
   document.getElementById('timer').textContent=fmtTime(t);
 }
@@ -3467,11 +3489,11 @@ function startGame(){
   enemies=[];bullets=[];gems=[];floaters=[];zaps=[];pulses=[];pickups=[];
   turrets=[];saws=[];beams=[];shells=[];booms=[];particles=[];ebullets=[];deathRings=[];
   mines=[];firepools=[];hazards=[];flameT=0;lastBolt=-1;
-  secondChanceUsed=false;quizOk=0;quizTot=0;
+  secondChanceUsed=false;quizOk=0;quizTot=0;missedList=[];
   usedExos=[];marchandTimer=0;marchandDone=0;
   decorInit=false;
   essaimTimer=30;
-  t=0;kills=0;frame=0;spawnTimer=0.5;eliteTimer=0;bossIdx=0;bossAlive=null;shake=0;palier=0;
+  t=0;kills=0;dmgDealt=0;frame=0;spawnTimer=0.5;eliteTimer=0;bossIdx=0;bossAlive=null;shake=0;palier=0;
   wt={laser:0,arc:0,verin:0,onde:0,orbA:0,tour:0,scie:0,rail:0,mort:0,chal:0,cryo:0,mine:0};
   refreshSlots();
   document.getElementById('ovMenu').classList.remove('on');
@@ -3485,6 +3507,35 @@ function gameOver(){
   if(!secondChanceUsed&&quizPoolIdx().length>0){openSecondChance();return;}
   finalGameOver();
 }
+/* remplit la section "A reviser" de l'ecran de fin avec les questions ratees */
+function fillReviseBox(){
+  var box=document.getElementById('reviseBox');
+  var list=document.getElementById('reviseList');
+  if(missedList.length===0){box.style.display='none';return;}
+  box.style.display='block';
+  list.style.display='none';                 /* replie par defaut */
+  document.getElementById('reviseCount').textContent=missedList.length;
+  /* groupe par matiere */
+  var byMat={};
+  missedList.forEach(function(m){
+    (byMat[m.mat]=byMat[m.mat]||[]).push(m);
+  });
+  var html='';
+  Object.keys(byMat).sort().forEach(function(mat){
+    html+='<div style="color:#4FB3D9;font-family:\u0027JetBrains Mono\u0027,monospace;font-size:11px;margin:8px 0 4px;">'+mat.toUpperCase()+'<\/div>';
+    byMat[mat].forEach(function(m){
+      html+='<div style="border-left:2px solid '+(m.kind==='exo'?'#E08A3C':'#FFD24A')+';padding:4px 8px;margin-bottom:6px;background:#0E1526;border-radius:0 6px 6px 0;">'+
+        '<div style="color:#E8ECF5;">'+m.q+'<\/div>'+
+        '<div style="color:#7CFF9E;margin-top:2px;">\u2713 '+m.rep+'<\/div>'+
+        '<\/div>';
+    });
+  });
+  list.innerHTML=html;
+}
+document.getElementById('btnRevise').addEventListener('click',function(){
+  var list=document.getElementById('reviseList');
+  list.style.display=(list.style.display==='none')?'block':'none';
+});
 function openSecondChance(){
   state='revive';sfx('alarm');
   secondChanceUsed=true;
@@ -3538,10 +3589,11 @@ function finalGameOver(){
     'NOUVEAU RECORD ! La menace exponentielle a fini par gagner\u2026 mais plus tard que jamais.':
     'Le r\u00E9seau a eu raison de votre machine. Record actuel : '+fmtTime(Math.max(best,t))+'.';
   /* credits gagnes */
-  var gain=Math.floor(t/10)+Math.floor(kills/20)+palier*25+(bossIdx-(bossAlive?1:0))*15;
+  var gain=Math.floor(t/10)+Math.floor(dmgDealt/2500)+palier*25+(bossIdx-(bossAlive?1:0))*15;
   atelier.cr+=gain;saveAtelier();updateCred();
   document.getElementById('endStats').innerHTML=
     (isDaily?'<b style="color:#B96CFF">D\u00E9fi du jour '+dailyKey()+'<\/b><br>':'')+
+    'SCORE (d\u00E9g\u00E2ts inflig\u00E9s) : <b style="color:#FFD24A">'+fmtNum(dmgDealt)+'<\/b><br>'+
     'Ch\u00E2ssis : <b>'+CHASSIS[selChassis].nom+'<\/b><br>'+
     'Temps de survie : <b>'+fmtTime(t)+'<\/b><br>'+
     'Palier atteint : <b>'+palier+'<\/b> (menace x'+Math.round(hpScale())+')<br>'+
@@ -3559,6 +3611,7 @@ function finalGameOver(){
   }catch(errG){}
   loadBoard(document.getElementById('endLb'),null,isDaily?FB_DEFI+'/'+dailyKey():FB_URL);
   sendTelemetry();
+  fillReviseBox();
   document.getElementById('ovEnd').classList.add('on');
 }
 function updateDailyInfo(){
@@ -3730,7 +3783,7 @@ function startClassGame(){
   ovHide('ovEleveRoom');
   document.getElementById('eleveLobby').style.display='none';
   mpMode=true;isDaily=false;
-  mpLastEventTs=0;mpSuperFired=false;mpClassGauge=0;
+  mpLastEventTs=0;mpSuperFired=false;mpClassGauge=0;mpNullStreak=0;
   startGame();                       /* reutilise tout le moteur solo */
   showBanner('SURVIVEZ ! Le prof invoque les menaces\u2026');
   mpStartEventListener();
@@ -3755,10 +3808,18 @@ function mpStartEventListener(){
         applyClassEvent(ev);
       });
     });
-    /* le prof a-t-il ferme la salle ? + lit la jauge de classe partagee */
+    /* le prof a-t-il ferme la salle ? on lit 'state' (jamais ecrit par l'eleve,
+       donc non recree par le state-push) + la jauge de classe partagee */
     fbGet(mpRoomUrl(),function(room){
-      if(room===null&&mpMode){endClassGame('Le prof a termin\u00E9 la partie.');return;}
-      if(!room)return;
+      var st=room&&room.state;
+      if(!st){
+        /* pas de state = salle fermee/absente ; un null isole peut etre un hoquet reseau,
+           on ne conclut qu'apres 4 lectures sans state de suite */
+        mpNullStreak++;
+        if(mpNullStreak>=4&&mpMode){endClassGame('Le prof a termin\u00E9 la partie.');}
+        return;
+      }
+      mpNullStreak=0;   /* la salle repond avec un state : on repart de zero */
       var g=Math.max(0,Math.min(100,room.gauge||0));
       mpClassGauge=g;
       updateClassGaugeHud(g);
@@ -3874,6 +3935,7 @@ function validateShield(){
     feed.textContent='Incorrect. Indice ci-dessus \u2014 r\u00E9essaie ou abandonne.';
     feed.style.color='#FF5A5A';sfx('hit');
     document.getElementById('shieldAide').textContent='\u2699 M\u00E9thode : '+shieldExoCur.aide;
+    missedPushExo(shieldExoCur);
   }
 }
 function closeShield(success){
@@ -3908,7 +3970,7 @@ function mpStartStatePush(){
     fbPatch(mpRoomUrl()+'/players/'+encodeURIComponent(mpPseudo),{
       hp:Math.max(0,Math.round(player?player.hp:0)),
       alive:(state==='play'||state==='levelup'||state==='countdown'||state==='marchand'||state==='revive'),
-      score:kills,ts:Date.now()
+      score:Math.round(dmgDealt),ts:Date.now()
     });
   },1500);
 }
@@ -3969,6 +4031,17 @@ function profSendEvent(ev){
   ev.ts=Date.now();ev.seq=(++mpEventSeq);
   var evUrl=mpRoomUrl()+'/events/'+ev.ts+'_'+ev.seq;
   fbPut(evUrl,ev);
+  /* purge les evenements de plus de 30 s : evite que la file grossisse a l'infini
+     (les eleves ont largement le temps de les recevoir avec un poll a 1,2 s) */
+  var cutoff=ev.ts-30000;
+  fbGet(mpRoomUrl()+'/events',function(all){
+    if(!all)return;
+    Object.keys(all).forEach(function(k){
+      if(all[k]&&all[k].ts&&all[k].ts<cutoff){
+        fetch(mpRoomUrl()+'/events/'+encodeURIComponent(k)+'.json',{method:'DELETE'});
+      }
+    });
+  });
 }
 function buildWaveButtons(){
   var box=document.getElementById('ppWaveBtns');box.innerHTML='';
@@ -4012,7 +4085,7 @@ function profRefreshState(){
       return '<div style="display:flex;justify-content:space-between;padding:1px 0;">'+
         '<span>'+(p.alive?'\u{1F916}':'\u{1F480}')+' '+n+'<\/span>'+
         '<span style="color:'+hpc+'">'+(p.alive?Math.round(p.hp)+' PV':'HS')+
-        ' \u00B7 '+(p.score||0)+' pts<\/span><\/div>';
+        ' \u00B7 '+fmtNum(p.score||0)+' pts<\/span><\/div>';
     }).join(''):'<div style="color:var(--dim)">En attente\u2026<\/div>';
   });
 }
