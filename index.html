@@ -872,21 +872,37 @@ function loadBoard(el,highlight,url){
     .then(function(data){
       el.innerHTML='';
       if(!data){el.innerHTML='<div class="lmsg">Aucun score publi\u00E9 pour l\u2019instant.<\/div>';return;}
+      /* classement par SCORE = degats infliges ; les anciennes entrees
+         (publiees avant le passage au score) n'ont pas de champ degats :
+         on les place apres, sans les perdre. */
       var rows=Object.keys(data).map(function(k){return data[k];})
-        .filter(function(s){return s&&typeof s.temps==='number';})
-        .sort(function(a,b){return b.temps-a.temps;})
+        .filter(function(s){return s&&(typeof s.degats==='number'||typeof s.temps==='number');})
+        .sort(function(a,b){
+          var da=(typeof a.degats==='number')?a.degats:-1;
+          var db=(typeof b.degats==='number')?b.degats:-1;
+          if(db!==da)return db-da;
+          return (b.temps||0)-(a.temps||0);   /* egalite : le plus long survivant devant */
+        })
         .slice(0,10);
       rows.forEach(function(s,i){
         var d=document.createElement('div');d.className='lrow';
         var rank=document.createElement('span');rank.className='lrank';rank.textContent=(i+1)+'.';
         var name=document.createElement('span');name.className='lname';
         name.textContent=String(s.pseudo||'?').slice(0,14);
-        if(highlight&&s.pseudo===highlight.pseudo&&s.temps===highlight.temps)
+        if(highlight&&s.pseudo===highlight.pseudo&&s.degats===highlight.degats)
           name.style.color='#FFD24A';
         var cls=document.createElement('span');cls.className='lcls';
         cls.textContent=String(s.classe||'').slice(0,6);
         var tm=document.createElement('span');tm.className='ltime';
-        tm.textContent=s.tempsAff||fmtTime(s.temps);
+        /* colonne principale : le score en degats (temps en info secondaire) */
+        if(typeof s.degats==='number'){
+          tm.textContent=fmtNum(s.degats)+' pts';
+          tm.title='Temps de survie : '+(s.tempsAff||fmtTime(s.temps||0));
+        }else{
+          tm.textContent=s.tempsAff||fmtTime(s.temps);   /* ancienne entree */
+          tm.style.opacity='0.6';
+          tm.title='Score publi\u00E9 avant le passage au score par d\u00E9g\u00E2ts';
+        }
         d.appendChild(rank);d.appendChild(name);d.appendChild(cls);d.appendChild(tm);
         el.appendChild(d);
       });
@@ -1328,7 +1344,7 @@ function admSection(parent,url,label){
       box.innerHTML='';
       if(!data){box.innerHTML='<div class="lmsg">Aucun score.<\/div>';return;}
       var rows=Object.keys(data).map(function(k){return {key:k,s:data[k]};})
-        .filter(function(x){return x.s&&typeof x.s.temps==='number';})
+        .filter(function(x){return x.s&&(typeof x.s.degats==='number'||typeof x.s.temps==='number');})
         .sort(function(a,b){return String(b.s.date||'').localeCompare(String(a.s.date||''));});
       rows.forEach(function(x){
         var d=document.createElement('div');d.className='lrow';
@@ -1337,7 +1353,7 @@ function admSection(parent,url,label){
         var dt=document.createElement('span');dt.className='lcls';
         dt.textContent=String(x.s.date||'').slice(0,10);
         var tm=document.createElement('span');tm.className='ltime';
-        tm.textContent=x.s.tempsAff||fmtTime(x.s.temps);
+        tm.textContent=(typeof x.s.degats==='number')?(fmtNum(x.s.degats)+' pts'):(x.s.tempsAff||fmtTime(x.s.temps));
         var del=document.createElement('button');del.className='atbuy';
         del.style.borderColor='#FF5A5A';del.style.color='#FF5A5A';
         del.textContent='SUPPRIMER';
