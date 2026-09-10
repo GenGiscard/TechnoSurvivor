@@ -1459,11 +1459,11 @@ var TYPES=[
    puis la composante exponentielle domine totalement (x77 a 60 min, x5900 a 2 h).
    */
 function hpScale(){var tm=t/60;return (1+tm*0.25)*Math.pow(1.075,tm);}
-function spdScale(){return Math.min(1.05*(1+(t/60)*0.03),1.68);}
+function spdScale(){return Math.min(1.2075*(1+(t/60)*0.03),1.932);}   /* +5% puis +15% */
 function dmgScale(){return Math.min(1+t/420,6);}
 function spawnEnemy(type,ax,ay){
   var a=(ax===undefined)?rand()*Math.PI*2:ax;
-  var d=Math.max(W,H)*0.62+40;
+  var d=Math.max(W,H)*0.558+36;   /* -10% : arene ressentie plus resserree */
   var x=(ax===undefined)?player.x+Math.cos(a)*d:ax;
   var y=(ay===undefined)?player.y+Math.sin(a)*d:ay;
   var tier=Math.floor(t/900);           /* palier de 15 min : +1 XP et halo */
@@ -1475,7 +1475,7 @@ function spawnEnemy(type,ax,ay){
 function spawnElite(){
   var n=1+Math.floor(t/600);            /* +1 sentinelle toutes les 10 min */
   for(var i=0;i<n;i++){
-    var a=rand()*Math.PI*2,d=Math.max(W,H)*0.62+40;
+    var a=rand()*Math.PI*2,d=Math.max(W,H)*0.558+36;   /* -10% */
     enemies.push({x:player.x+Math.cos(a)*d,y:player.y+Math.sin(a)*d,
       r:21,hp:420*hpScale(),hpMax:420*hpScale(),spd:1.05*spdScale(),
       dmg:Math.round(26*dmgScale()),xp:8+Math.floor(t/900)*3,
@@ -1486,7 +1486,7 @@ function spawnElite(){
 function spawnBoss(){
   bossIdx++;
   var kind=(bossIdx%2===1)?'mega':'cnc';
-  var a=rand()*Math.PI*2,d=Math.max(W,H)*0.6+60;
+  var a=rand()*Math.PI*2,d=Math.max(W,H)*0.54+54;      /* -10% (boss) */
   var bhp=2600*Math.pow(1.32,bossIdx-1)*hpScale()*0.7*(kind==='cnc'?0.9:1);
   bossAlive={x:player.x+Math.cos(a)*d,y:player.y+Math.sin(a)*d,
     r:36,hp:bhp,hpMax:bhp,kind:kind,
@@ -1591,7 +1591,7 @@ function bossAI(e,dt){
       var n=enr?18:13;
       for(var i=0;i<n;i++){
         var aa=i/n*Math.PI*2+t;
-        ebullets.push({x:e.x,y:e.y,vx:Math.cos(aa)*3.57,vy:Math.sin(aa)*3.57,
+        ebullets.push({x:e.x,y:e.y,vx:Math.cos(aa)*4.11,vy:Math.sin(aa)*4.11,
           r:6,dmg:Math.round(16*dmgScale()),life:3});
       }
       sfx('rail');
@@ -1674,7 +1674,7 @@ function droneAI(e,dt){
   else{e.x+=Math.cos(a+Math.PI/2)*sd*0.6;e.y+=Math.sin(a+Math.PI/2)*sd*0.6;}
   if(e.fireCd<=0&&d<430&&ebullets.length<130){
     e.fireCd=2.4;
-    ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*3.57,vy:Math.sin(a)*3.57,r:5,dmg:e.dmg,life:2.6});
+    ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*4.11,vy:Math.sin(a)*4.11,r:5,dmg:e.dmg,life:2.6});
     sfx('tick');
   }
 }
@@ -2268,7 +2268,7 @@ function recomputePassives(justTook){
   var p=player.passives,m=player.meta,ch=player.chassis,A=atelier.up;
   player.dmgMul=ch.dmg*(1+(A.dmg||0)*0.02)*(1+(p.rendement||0)*0.18)*Math.pow(1.10,(m.surcad||0));
   player.cdMul=Math.max(ch.cd*(1-(A.cd||0)*0.015)*Math.pow(0.92,(p.dissip||0))*Math.pow(0.98,(m.refroid||0)),0.28);
-  player.spd=2.55*1.05*ch.spd*(1+(A.spd||0)*0.015)*(1+(p.servo||0)*0.08)*(1+(m.overservo||0)*0.02);
+  player.spd=2.55*1.2075*ch.spd*(1+(A.spd||0)*0.015)*(1+(p.servo||0)*0.08)*(1+(m.overservo||0)*0.02);
   player.armor=ch.armor+(A.armor||0)+(p.blindage||0)*2+(m.microb||0);
   player.magnet=70*ch.mag*(1+(A.mag||0)*0.06)*(1+(p.capteur||0)*0.30);
   if(justTook==='alim'){player.hpMax+=20;player.hp=Math.min(player.hpMax,player.hp+20);}
@@ -2302,7 +2302,7 @@ function buildPauseStats(){
     'Ch\u00E2ssis : <b>'+player.chassis.nom+'<\/b><br>'+
     'PV : <b>'+Math.ceil(player.hp)+' / '+player.hpMax+'<\/b> \u00B7 Armure : <b>'+player.armor+'<\/b><br>'+
     'D\u00E9g\u00E2ts : <b>x'+player.dmgMul.toFixed(2)+'<\/b> \u00B7 Recharge : <b>x'+player.cdMul.toFixed(2)+'<\/b><br>'+
-    'Vitesse : <b>'+Math.round(player.spd/(2.55*1.05)*100)+'%<\/b> \u00B7 Collecte : <b>'+Math.round(player.magnet)+' px<\/b><br><br>';
+    'Vitesse : <b>'+Math.round(player.spd/(2.55*1.2075)*100)+'%<\/b> \u00B7 Collecte : <b>'+Math.round(player.magnet)+' px<\/b><br><br>';
   Object.keys(player.weapons).forEach(function(k){
     var lvw=player.weapons[k];
     h+=WEAPONS[k].ic+' '+WEAPONS[k].nom+' \u2014 '+
@@ -2378,8 +2378,8 @@ function update(dt){
       var tierE=Math.floor(t/900);
       for(var ev2=0;ev2<10;ev2++){
         var aV=ev2/10*Math.PI*2;
-        enemies.push({x:player.x+Math.cos(aV)*(Math.max(W,H)*0.58),
-          y:player.y+Math.sin(aV)*(Math.max(W,H)*0.58),
+        enemies.push({x:player.x+Math.cos(aV)*(Math.max(W,H)*0.522),
+          y:player.y+Math.sin(aV)*(Math.max(W,H)*0.522),
           r:8,hp:22*hpScale(),hpMax:22*hpScale(),spd:1.5*spdScale(),
           dmg:Math.round(11*dmgScale()),xp:1+tierE,tier:tierE,col:'#7CD9FF',
           id:'essaim',zig:0,elite:false,boss:false,kb:0,kbx:0,kby:0,
@@ -2396,7 +2396,7 @@ function update(dt){
   if(frame%3600===1800&&t>150){
     showBanner('VAGUE CRITIQUE');
     for(var vv=0;vv<16;vv++){var av=vv/16*Math.PI*2;
-      spawnEnemy(TYPES[0],player.x+Math.cos(av)*(Math.max(W,H)*0.55),player.y+Math.sin(av)*(Math.max(W,H)*0.55));}
+      spawnEnemy(TYPES[0],player.x+Math.cos(av)*(Math.max(W,H)*0.495),player.y+Math.sin(av)*(Math.max(W,H)*0.495));}
   }
 
   /* ennemis */
