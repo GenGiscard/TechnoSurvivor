@@ -224,8 +224,13 @@ h1 .t1{color:var(--steel);}h1 .t2{color:var(--copper);}
 <div class="overlay" id="ovClasse"><div class="panel">
   <h1 style="font-size:24px;"><span class="t1">MODE</span> <span style="color:#3FD98A">CLASSE</span></h1>
   <p class="sub">La classe coop&egrave;re pour survivre. Le prof invoque les menaces ; seuls les <b>exercices r&eacute;solus</b> activent les d&eacute;fenses. Le savoir est votre arme.</p>
-  <button class="btn" id="btnRoleProf" style="background:linear-gradient(90deg,#B85C2E,#E08A3C);">&#128081; JE SUIS LE PROF (ma&icirc;tre du jeu)</button>
-  <button class="btn" id="btnRoleEleve" style="margin-top:10px;background:linear-gradient(90deg,#1F7A4D,#3FD98A);">&#129302; JE SUIS UN &Eacute;L&Egrave;VE</button>
+  <button class="btn" id="btnRoleProf" style="background:linear-gradient(90deg,#B85C2E,#E08A3C);">JE SUIS LE PROF (ma&icirc;tre du jeu)</button>
+  <div class="pubrow" id="profPassRow" style="display:none;margin-top:8px;">
+    <input type="password" id="profPass" placeholder="Code enseignant" autocomplete="off" maxlength="24">
+    <button class="btn2" id="btnProfPassGo" style="border-color:#E08A3C;color:#E08A3C;">VALIDER</button>
+  </div>
+  <div id="profPassMsg" style="font-family:'JetBrains Mono',monospace;font-size:11px;min-height:14px;color:var(--danger);"></div>
+  <button class="btn" id="btnRoleEleve" style="margin-top:10px;background:linear-gradient(90deg,#1F7A4D,#3FD98A);">JE SUIS UN &Eacute;L&Egrave;VE</button>
   <button class="btn2" id="btnClasseBack" style="margin-top:14px;">&larr; Retour</button>
 </div></div>
 
@@ -3814,10 +3819,44 @@ function sanitizeCode(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,'').s
 
 /* --- entree dans le mode classe --- */
 document.getElementById('btnClasse').addEventListener('click',function(){ovShow('ovClasse');});
-document.getElementById('btnClasseBack').addEventListener('click',function(){ovHide('ovClasse');});
+document.getElementById('btnClasseBack').addEventListener('click',function(){
+  document.getElementById('profPassRow').style.display='none';
+  document.getElementById('profPassMsg').textContent='';
+  document.getElementById('profPass').value='';
+  ovHide('ovClasse');
+});
+/* Le role de prof est verrouille par un code : sans lui, un eleve ne peut pas
+   creer de salle ni prendre la main sur la partie. */
+var CLASSE_PASS='MAITRE2025';
+function unlockProfRole(){
+  var v=document.getElementById('profPass').value;
+  if(v===CLASSE_PASS){
+    document.getElementById('profPassRow').style.display='none';
+    document.getElementById('profPassMsg').textContent='';
+    document.getElementById('profPass').value='';
+    ovHide('ovClasse');ovShow('ovProfRoom');
+    document.getElementById('profRoomCode').focus();
+  }else{
+    document.getElementById('profPassMsg').textContent='Code enseignant incorrect.';
+    document.getElementById('profPass').select();
+  }
+}
 document.getElementById('btnRoleProf').addEventListener('click',function(){
-  ovHide('ovClasse');ovShow('ovProfRoom');
-  document.getElementById('profRoomCode').focus();
+  var row=document.getElementById('profPassRow');
+  var ouvert=row.style.display!=='none';
+  if(ouvert){
+    row.style.display='none';
+    document.getElementById('profPassMsg').textContent='';
+  }else{
+    row.style.display='flex';
+    document.getElementById('profPassMsg').textContent='';
+    document.getElementById('profPass').value='';
+    document.getElementById('profPass').focus();
+  }
+});
+document.getElementById('btnProfPassGo').addEventListener('click',unlockProfRole);
+document.getElementById('profPass').addEventListener('keydown',function(e){
+  if(e.key==='Enter')unlockProfRole();
 });
 document.getElementById('btnRoleEleve').addEventListener('click',function(){
   ovHide('ovClasse');ovShow('ovEleveRoom');
